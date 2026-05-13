@@ -16,6 +16,9 @@ import Announcements from './pages/Announcements'
 import Signup from './pages/Signup'
 import ManageInstructors from './pages/ManageInstructors'
 import ManageAnnouncements from './pages/ManageAnnouncements'
+import Finance from './pages/Finance'
+import Reports from './pages/Reports'
+
 
 
 
@@ -60,7 +63,10 @@ function AppRoutes() {
       <Route path="/admin" element={<PrivateRoute allowedRoles={['admin']}><AdminDashboard /></PrivateRoute>} />
       <Route path="/admin/instructors" element={<PrivateRoute allowedRoles={['admin']}><ManageInstructors /></PrivateRoute>} />
       <Route path="/admin/announcements" element={<PrivateRoute allowedRoles={['admin']}><ManageAnnouncements /></PrivateRoute>} />
+      <Route path="/admin/finance" element={<PrivateRoute allowedRoles={['admin']}><Finance /></PrivateRoute>} />
+      <Route path="/admin/reports" element={<PrivateRoute allowedRoles={['admin']}><Reports /></PrivateRoute>} />
       <Route path="/instructor" element={<PrivateRoute allowedRoles={['instructor']}><InstructorDashboard /></PrivateRoute>} />
+
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

@@ -56,7 +56,22 @@ export default function AdminDashboard() {
             link="/courses"
             color="#10b981"
           />
+          <ManagementCard 
+            title="Finance Overview" 
+            description="Track platform revenue, instructor payouts, and financial growth." 
+            icon="💰"
+            link="/admin/finance"
+            color="#059669"
+          />
+          <ManagementCard 
+            title="Advanced Reports" 
+            description="Detailed analytics on learner progress and course performance." 
+            icon="📊"
+            link="/admin/reports"
+            color="#8b5cf6"
+          />
         </div>
+
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
           <Metric label="Learners" value={data.total_learners} hint="Active in the training portal" />

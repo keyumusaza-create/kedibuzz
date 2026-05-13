@@ -9,9 +9,10 @@ export default function MyLearning() {
 
   useEffect(() => {
     api.get('/courses/enrollments/')
-      .then((response) => setEnrollments(response.data || []))
+      .then((response) => setEnrollments(response.data.results || response.data || []))
       .finally(() => setLoading(false))
   }, [])
+
 
   return (
     <Layout>

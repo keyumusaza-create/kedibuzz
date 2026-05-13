@@ -8,7 +8,8 @@ export default function Certificates() {
 
   useEffect(() => {
     api.get('/courses/certificates/')
-      .then((response) => setCertificates(response.data || []))
+      .then((response) => setCertificates(response.data.results || response.data || []))
+
       .finally(() => setLoading(false))
   }, [])
 

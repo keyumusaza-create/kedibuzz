@@ -17,9 +17,10 @@ export default function Courses() {
   useEffect(() => {
     Promise.all([api.get('/courses/list/'), api.get('/courses/categories/')])
       .then(([courseResponse, categoryResponse]) => {
-        setCourses(courseResponse.data || [])
-        setCategories(categoryResponse.data || [])
+        setCourses(courseResponse.data.results || courseResponse.data || [])
+        setCategories(categoryResponse.data.results || categoryResponse.data || [])
       })
+
       .finally(() => setLoading(false))
   }, [])
 

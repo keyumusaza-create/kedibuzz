@@ -23,7 +23,7 @@ DEBUG = env('DEBUG')
 if not DEBUG and SECRET_KEY == 'django-insecure-kedi-developer-hub-dev-key-change-in-production':
     raise ImproperlyConfigured('DJANGO_SECRET_KEY must be set when DEBUG is False.')
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1', '.railway.app', 'healthcheck.railway.app'])
 
 INSTALLED_APPS = [
     'django.contrib.admin',

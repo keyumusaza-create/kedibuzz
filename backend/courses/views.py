@@ -2,11 +2,14 @@ from django.db import models
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Category, Course, Lesson, Enrollment, Certificate, Announcement
+from .models import (
+    Category, Course, Lesson, Enrollment, Certificate, Announcement, Assignment, Submission
+)
 from .bootstrap import ensure_learning_seed_data
 from .serializers import (
     CategorySerializer, CourseSerializer, CourseDetailSerializer, LessonSerializer,
-    EnrollmentSerializer, CertificateSerializer, AnnouncementSerializer
+    EnrollmentSerializer, CertificateSerializer, AnnouncementSerializer,
+    AssignmentSerializer, SubmissionSerializer
 )
 
 
@@ -118,6 +121,7 @@ class LessonViewSet(viewsets.ModelViewSet):
         enrollment, _ = Enrollment.objects.get_or_create(learner=request.user, course=lesson.course)
         total_lessons = max(lesson.course.lessons.count(), 1)
         progress = round((lesson.order / total_lessons) * 100, 2)
+        certificate_earned = False
         if progress > float(enrollment.progress):
             enrollment.progress = progress
         if progress >= 100:
@@ -125,7 +129,7 @@ class LessonViewSet(viewsets.ModelViewSet):
             if not enrollment.completed_at:
                 from django.utils import timezone
                 enrollment.completed_at = timezone.now()
-            Certificate.objects.get_or_create(
+            certificate, created = Certificate.objects.get_or_create(
                 enrollment=enrollment,
                 defaults={
                     'learner': request.user,
@@ -133,9 +137,15 @@ class LessonViewSet(viewsets.ModelViewSet):
                     'certificate_number': f'KDH-{str(enrollment.id).split("-")[0].upper()}',
                 },
             )
+            certificate_earned = created
         enrollment.save()
         serializer = self.get_serializer(lesson)
-        return Response(serializer.data)
+        response_data = serializer.data
+        response_data['certificate_earned'] = certificate_earned
+        if certificate_earned:
+            from .serializers import CertificateSerializer
+            response_data['certificate'] = CertificateSerializer(certificate).data
+        return Response(response_data)
 
 class EnrollmentViewSet(viewsets.ModelViewSet):
     serializer_class = EnrollmentSerializer
@@ -179,3 +189,43 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+class AssignmentViewSet(viewsets.ModelViewSet):
+    queryset = Assignment.objects.all()
+    serializer_class = AssignmentSerializer
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsAdminOrInstructorRole()]
+        return [permissions.IsAuthenticated()]
+
+    def get_queryset(self):
+        ensure_learning_seed_data()
+        course_id = self.request.query_params.get('course_id')
+        queryset = self.queryset.select_related('course')
+        if course_id:
+            queryset = queryset.filter(course_id=course_id)
+            
+        user = self.request.user
+        if user.role == 'learner':
+            # Learners see assignments for enrolled courses
+            queryset = queryset.filter(course__enrollments__learner=user)
+        return queryset.distinct().order_by('-created_at')
+
+class SubmissionViewSet(viewsets.ModelViewSet):
+    queryset = Submission.objects.all()
+    serializer_class = SubmissionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = self.queryset.select_related('assignment', 'learner')
+        if user.role == 'learner':
+            return queryset.filter(learner=user).order_by('-submitted_at')
+        if user.role == 'instructor':
+            return queryset.filter(assignment__course__instructor=user).order_by('-submitted_at')
+        return queryset.order_by('-submitted_at')
+
+    def perform_create(self, serializer):
+        serializer.save(learner=self.request.user)
+

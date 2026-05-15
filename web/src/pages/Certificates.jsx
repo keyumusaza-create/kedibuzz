@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react'
 import Layout from '../components/Layout'
 import api from '../services/api'
+import { useNavigate } from 'react-router-dom'
 
 export default function Certificates() {
   const [certificates, setCertificates] = useState([])
   const [loading, setLoading] = useState(true)
+  const navigate = useNavigate()
 
   useEffect(() => {
     api.get('/courses/certificates/')
       .then((response) => setCertificates(response.data.results || response.data || []))
-
       .finally(() => setLoading(false))
   }, [])
 
@@ -32,8 +33,34 @@ export default function Certificates() {
         ) : (
           <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1rem' }}>
             {certificates.map((certificate) => (
-              <article key={certificate.id} style={{ background: '#fff', borderRadius: '1.5rem', padding: '1.5rem', border: '1px solid rgba(148,163,184,0.16)', boxShadow: '0 18px 40px rgba(15,23,42,0.06)' }}>
-                <div style={{ padding: '1.4rem', borderRadius: '1.2rem', background: 'linear-gradient(135deg, #0f172a 0%, #1d4ed8 60%, #f59e0b 140%)', color: '#fff', marginBottom: '1rem' }}>
+              <article 
+                key={certificate.id} 
+                onClick={() => navigate(`/certificate/${certificate.id}`)}
+                style={{ 
+                  background: '#fff', 
+                  borderRadius: '1.5rem', 
+                  padding: '1.5rem', 
+                  border: '1px solid rgba(148,163,184,0.16)', 
+                  boxShadow: '0 18px 40px rgba(15,23,42,0.06)',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = '0 20px 40px rgba(15,23,42,0.08)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 18px 40px rgba(15,23,42,0.06)';
+                }}
+              >
+                <div style={{ 
+                  padding: '1.4rem', 
+                  borderRadius: '1.2rem', 
+                  background: 'linear-gradient(135deg, #0f172a 0%, #1d4ed8 60%, #f59e0b 140%)', 
+                  color: '#fff', 
+                  marginBottom: '1rem' 
+                }}>
                   <div style={{ fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.14em', color: '#bfdbfe', fontWeight: 800, marginBottom: '0.5rem' }}>KEDI Developer Hub</div>
                   <h2 style={{ fontSize: '1.2rem', fontWeight: 900, marginBottom: '0.45rem' }}>Certificate of Completion</h2>
                   <p style={{ color: 'rgba(255,255,255,0.82)', lineHeight: 1.55 }}>{certificate.course_title}</p>

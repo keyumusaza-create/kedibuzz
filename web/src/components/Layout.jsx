@@ -19,30 +19,50 @@ const GearIcon = (p) => <Svg {...p}><circle cx="12" cy="12" r="3" /><path d="M19
 const SearchIcon = (p) => <Svg {...p}><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></Svg>
 const MenuIcon = (p) => <Svg {...p}><path d="M3 6h18M3 12h18M3 18h18" /></Svg>
 const LogoutIcon = (p) => <Svg {...p}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="m16 17 5-5-5-5" /><path d="M21 12H9" /></Svg>
+const UsersIcon = (p) => <Svg {...p}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></Svg>
+const LayersIcon = (p) => <Svg {...p}><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.1 6.27a2 2 0 0 0 0 3.66l9.07 4.09a2 2 0 0 0 1.66 0l9.07-4.09a2 2 0 0 0 0-3.66Z" /><path d="m2.1 14.07 9.07 4.09a2 2 0 0 0 1.66 0l9.07-4.09" /><path d="m2.1 10.07 9.07 4.09a2 2 0 0 0 1.66 0l9.07-4.09" /></Svg>
+const MessageIcon = (p) => <Svg {...p}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></Svg>
+const ChartIcon = (p) => <Svg {...p}><path d="M3 3v18h18" /><path d="m19 9-5 5-4-4-3 3" /></Svg>
 
 const NAV = {
   admin: [
-    { path: '/', label: 'Dashboard', Icon: HomeIcon },
-    { path: '/courses', label: 'Courses', Icon: CourseIcon },
-    { path: '/announcements', label: 'Announcements', Icon: BellIcon },
-    { path: '/certificates', label: 'Certificates', Icon: AwardIcon },
+    { path: '/admin', label: 'Dashboard', Icon: HomeIcon },
+    { path: '/admin/users', label: 'Users', Icon: UsersIcon },
+    { path: '/admin/instructors', label: 'Instructors', Icon: UsersIcon },
+    { path: '/admin/students', label: 'Students', Icon: UsersIcon },
+    { path: '/admin/courses', label: 'Courses', Icon: CourseIcon },
+    { path: '/admin/categories', label: 'Categories', Icon: LayersIcon },
+    { path: '/admin/certificates', label: 'Certificates', Icon: AwardIcon },
+    { path: '/admin/analytics', label: 'Analytics', Icon: ChartIcon },
+    { path: '/admin/announcements', label: 'Announcements', Icon: BellIcon },
+    { path: '/admin/reports', label: 'Reports', Icon: ChartIcon },
+    { path: '/admin/payments', label: 'Payments', Icon: LayersIcon },
     { path: '/settings', label: 'Settings', Icon: GearIcon },
   ],
   instructor: [
-    { path: '/', label: 'Dashboard', Icon: HomeIcon },
-    { path: '/courses', label: 'Courses', Icon: CourseIcon },
-    { path: '/practice', label: 'Practice Lab', Icon: RocketIcon },
-    { path: '/announcements', label: 'Announcements', Icon: BellIcon },
+
+    { path: '/instructor', label: 'Dashboard', Icon: HomeIcon },
+    { path: '/instructor/courses', label: 'My Courses', Icon: CourseIcon },
+    { path: '/instructor/courses/create', label: 'Create Course', Icon: RocketIcon },
+    { path: '/instructor/lessons', label: 'Lessons', Icon: LayersIcon },
+    { path: '/instructor/assignments', label: 'Assignments', Icon: GearIcon },
+    { path: '/instructor/students', label: 'Students', Icon: UsersIcon },
+    { path: '/instructor/submissions', label: 'Submissions', Icon: AwardIcon },
+    { path: '/instructor/certificates', label: 'Certificates', Icon: AwardIcon },
+    { path: '/instructor/announcements', label: 'Announcements', Icon: BellIcon },
+    { path: '/instructor/messages', label: 'Messages', Icon: MessageIcon },
+    { path: '/instructor/analytics', label: 'Analytics', Icon: ChartIcon },
     { path: '/settings', label: 'Settings', Icon: GearIcon },
   ],
   learner: [
-    { path: '/', label: 'Dashboard', Icon: HomeIcon },
-    { path: '/courses', label: 'Courses', Icon: CourseIcon },
-    { path: '/my-learning', label: 'My Learning', Icon: CourseIcon },
+    { path: '/my-learning', label: 'Dashboard', Icon: HomeIcon },
+    { path: '/courses', label: 'My Courses', Icon: CourseIcon },
+    { path: '/learning-path', label: 'Learning Path', Icon: LayersIcon },
+    { path: '/assignments', label: 'Assignments', Icon: LayersIcon },
     { path: '/practice', label: 'Practice Lab', Icon: RocketIcon },
     { path: '/certificates', label: 'Certificates', Icon: AwardIcon },
-    { path: '/announcements', label: 'Announcements', Icon: BellIcon },
-    { path: '/profile', label: 'Profile', Icon: UserIcon },
+    { path: '/messages', label: 'Messages', Icon: MessageIcon },
+    { path: '/community', label: 'Community', Icon: UsersIcon },
     { path: '/settings', label: 'Settings', Icon: GearIcon },
   ],
 }
@@ -115,16 +135,23 @@ export default function Layout({ children }) {
     boxShadow: active ? '0 16px 30px rgba(37, 99, 235, 0.22)' : 'none',
   })
 
+  // Do not wrap authentication pages in the platform shell
+  if (['/login', '/signup'].includes(location.pathname)) {
+    return <>{children}</>
+  }
+
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #f8fbff 0%, #eef4fb 100%)' }}>
+    <div style={{ height: '100vh', overflow: 'hidden', background: 'linear-gradient(180deg, #f8fbff 0%, #eef4fb 100%)' }}>
       <style>{`
-        .hub-shell { display: grid; grid-template-columns: 280px minmax(0, 1fr); min-height: 100vh; }
-        .hub-sidebar { padding: 1.25rem; background: rgba(255,255,255,0.82); border-right: 1px solid rgba(148,163,184,0.14); backdrop-filter: blur(18px); }
-        .hub-main { min-width: 0; display: flex; flex-direction: column; }
+        .hub-shell { display: grid; grid-template-columns: 280px minmax(0, 1fr); height: 100vh; overflow: hidden; }
+        .hub-sidebar { padding: 1.25rem; background: rgba(255,255,255,0.82); border-right: 1px solid rgba(148,163,184,0.14); backdrop-filter: blur(18px); height: 100vh; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; }
+        .hub-sidebar::-webkit-scrollbar { width: 4px; } .hub-sidebar::-webkit-scrollbar-track { background: transparent; } .hub-sidebar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+        .hub-main { min-width: 0; display: flex; flex-direction: column; height: 100vh; overflow-y: auto; overflow-x: hidden; }
+        .hub-main::-webkit-scrollbar { width: 6px; } .hub-main::-webkit-scrollbar-track { background: transparent; } .hub-main::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
         .hub-search-result:hover { background: #f8fbff; }
         @media (max-width: 980px) {
           .hub-shell { grid-template-columns: minmax(0, 1fr); }
-          .hub-sidebar { position: fixed; inset: 0 auto 0 0; width: 280px; z-index: 50; transform: translateX(-100%); transition: transform 0.2s ease; box-shadow: 0 20px 60px rgba(15,23,42,0.18); }
+          .hub-sidebar { position: fixed; inset: 0 auto 0 0; width: 280px; z-index: 50; transform: translateX(-100%); transition: transform 0.2s ease; box-shadow: 0 20px 60px rgba(15,23,42,0.18); height: 100vh; }
           .hub-sidebar.open { transform: translateX(0); }
           .hub-scrim { position: fixed; inset: 0; background: rgba(15,23,42,0.4); z-index: 40; }
         }

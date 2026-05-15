@@ -1,6 +1,24 @@
 from rest_framework import serializers
-from .models import Category, Course, Lesson, Enrollment, Certificate, Announcement
+from .models import Category, Course, Lesson, Enrollment, Certificate, Announcement, Assignment, Submission
 from accounts.serializers import UserSerializer
+
+class AssignmentSerializer(serializers.ModelSerializer):
+    course_title = serializers.ReadOnlyField(source='course.title')
+
+    class Meta:
+        model = Assignment
+        fields = ['id', 'course', 'course_title', 'title', 'description', 'due_date', 'points', 'created_at']
+
+class SubmissionSerializer(serializers.ModelSerializer):
+    assignment_title = serializers.ReadOnlyField(source='assignment.title')
+    learner_name = serializers.ReadOnlyField(source='learner.get_full_name')
+
+    class Meta:
+        model = Submission
+        fields = ['id', 'assignment', 'assignment_title', 'learner', 'learner_name', 'content', 'status', 'score', 'feedback', 'submitted_at', 'reviewed_at']
+        read_only_fields = ['learner', 'status', 'score', 'feedback', 'reviewed_at']
+
+
 
 class CategorySerializer(serializers.ModelSerializer):
     course_count = serializers.IntegerField(source='courses.count', read_only=True)

@@ -17,6 +17,7 @@ export default function LessonViewer() {
   const [lesson, setLesson] = useState(null)
   const [loading, setLoading] = useState(true)
   const [marking, setMarking] = useState(false)
+  const [showCertificateModal, setShowCertificateModal] = useState(false)
 
   useEffect(() => {
     api.get(`/courses/lessons/${id}/`)
@@ -29,6 +30,9 @@ export default function LessonViewer() {
     try {
       const response = await api.post(`/courses/lessons/${id}/complete/`)
       setLesson(response.data)
+      if (response.data.certificate_earned) {
+        setShowCertificateModal(true)
+      }
     } finally {
       setMarking(false)
     }
@@ -39,6 +43,64 @@ export default function LessonViewer() {
 
   return (
     <Layout>
+      {showCertificateModal && lesson.certificate && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.5)',
+          display: 'grid',
+          placeItems: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{ 
+            background: '#fff', 
+            borderRadius: '1.5rem', 
+            padding: '2rem', 
+            width: '90%', 
+            maxWidth: 400,
+            textAlign: 'center'
+          }}>
+            <div style={{ 
+              fontSize: '0.78rem', 
+              textTransform: 'uppercase', 
+              letterSpacing: '0.14em', 
+              color: '#1d4ed8', 
+              fontWeight: 800, 
+              marginBottom: '0.5rem' 
+            }}>KEDI Developer Hub</div>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: '0.5rem' }}>Certificate of Completion</h2>
+            <p style={{ color: '#51657f', lineHeight: 1.6, marginBottom: '1.5rem' }}>
+              {lesson.course_title}
+            </p>
+            <div style={{ 
+              display: 'grid', 
+              gap: '0.5rem', 
+              color: '#51657f',
+              textAlign: 'left'
+            }}>
+              <div><strong>Credential ID:</strong> {lesson.certificate.credential_id}</div>
+              <div><strong>Learner:</strong> {lesson.certificate.learner_name}</div>
+              <div><strong>Issued:</strong> {new Date(lesson.certificate.issued_at).toLocaleDateString()}</div>
+            </div>
+            <button
+              onClick={() => setShowCertificateModal(false)}
+              style={{ 
+                marginTop: '1.5rem',
+                padding: '0.75rem 1.5rem', 
+                borderRadius: '0.75rem', 
+                background: '#2563eb', 
+                color: '#fff', 
+                border: 'none', 
+                fontWeight: 700, 
+                cursor: 'pointer'
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
       <div style={{ display: 'grid', gap: '1rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
           <Link to={`/courses/${lesson.course}`} style={{ textDecoration: 'none', color: '#2563eb', fontWeight: 800 }}>← Back to course</Link>

@@ -12,6 +12,11 @@ urlpatterns = [
     path('api/accounts/', include('accounts.urls')),
     path('api/courses/', include('courses.urls')),
     path('api/dashboard/', include('dashboard.urls')),
+    path('api/messages/', include('messaging.urls')),
+    path('api/community/', include('community.urls')),
+    path('api/challenges/', include('challenges.urls')),
+    path('api/gamification/', include('gamification.urls')),
+    path('api/finance/', include('finance.urls')),
 ]
 
 if settings.DEBUG:

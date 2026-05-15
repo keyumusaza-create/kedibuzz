@@ -86,8 +86,16 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
-  const { login } = useAuth()
+  const { user, login } = useAuth()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    // If the user happens to navigate to /login while already logged in
+    if (user) {
+      const roleRoutes = { admin: '/admin', instructor: '/instructor', learner: '/my-learning' }
+      navigate(roleRoutes[user.role] || '/', { replace: true })
+    }
+  }, [user, navigate])
 
   useEffect(() => {
     if (location.state?.email) {

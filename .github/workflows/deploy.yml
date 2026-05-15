@@ -1,0 +1,60 @@
+name: KEDI Deploy Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test-and-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Backend Deps
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          
+      - name: Run Backend Tests
+        env:
+          DJANGO_SECRET_KEY: testing-key-only
+          DEBUG: True
+        run: |
+          cd backend
+          python manage.py test
+
+      - name: Install Frontend Deps
+        run: |
+          cd web
+          npm ci
+          
+      - name: Build Frontend
+        run: |
+          cd web
+          npm run build
+
+  deploy:
+    needs: test-and-lint
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Deploy to Docker Swarm / EC2
+        run: |
+          echo "Deploying via Docker Compose..."
+          # In production, this would SSH into the target host, 
+          # pull the latest main, and run docker-compose up -d --build

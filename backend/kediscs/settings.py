@@ -111,7 +111,7 @@ STATICFILES_DIRS = [
     BASE_DIR.parent / 'web' / 'dist',
 ]
 
-MEDIA_URL = 'media/'
+MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 if env('USE_S3'):

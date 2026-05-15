@@ -100,7 +100,7 @@ export function InstructorCourses() {
           title="My Courses"
           subtitle="Manage everything you're teaching."
           action={
-            <Link to="/instructor/courses/create" style={btn(true)}>+ Create Course</Link>
+            <Link to="/instructor/courses/builder" style={btn(true)}>+ Create Course</Link>
           }
         />
 

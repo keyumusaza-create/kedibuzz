@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category, Course, Lesson, Enrollment, Certificate, Announcement, Assignment, Submission
+from .models import Category, Course, Module, Lesson, Enrollment, Certificate, Announcement, Assignment, Submission
 from accounts.serializers import UserSerializer
 
 class AssignmentSerializer(serializers.ModelSerializer):
@@ -27,6 +27,11 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = ['id', 'name', 'slug', 'description', 'icon', 'course_count']
 
+class ModuleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Module
+        fields = ['id', 'course', 'title', 'description', 'order', 'created_at']
+
 class LessonSerializer(serializers.ModelSerializer):
     course_title = serializers.ReadOnlyField(source='course.title')
     previous_lesson_id = serializers.SerializerMethodField()
@@ -37,7 +42,7 @@ class LessonSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lesson
         fields = [
-            'id', 'course', 'course_title', 'title', 'slug', 'content', 'video_url',
+            'id', 'course', 'module', 'course_title', 'title', 'slug', 'content', 'video_url',
             'order', 'is_preview', 'created_at', 'updated_at',
             'previous_lesson_id', 'next_lesson_id', 'resources', 'is_completed',
         ]

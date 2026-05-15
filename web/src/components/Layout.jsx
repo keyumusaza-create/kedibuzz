@@ -37,6 +37,7 @@ const NAV = {
     { path: '/admin/announcements', label: 'Announcements', Icon: BellIcon },
     { path: '/admin/reports', label: 'Reports', Icon: ChartIcon },
     { path: '/admin/payments', label: 'Payments', Icon: LayersIcon },
+    { path: '/community', label: 'Community', Icon: UsersIcon },
     { path: '/settings', label: 'Settings', Icon: GearIcon },
   ],
   instructor: [
@@ -52,6 +53,7 @@ const NAV = {
     { path: '/instructor/announcements', label: 'Announcements', Icon: BellIcon },
     { path: '/instructor/messages', label: 'Messages', Icon: MessageIcon },
     { path: '/instructor/analytics', label: 'Analytics', Icon: ChartIcon },
+    { path: '/community', label: 'Community', Icon: UsersIcon },
     { path: '/settings', label: 'Settings', Icon: GearIcon },
   ],
   learner: [
@@ -146,14 +148,23 @@ export default function Layout({ children }) {
         .hub-shell { display: grid; grid-template-columns: 280px minmax(0, 1fr); height: 100vh; overflow: hidden; }
         .hub-sidebar { padding: 1.25rem; background: rgba(255,255,255,0.82); border-right: 1px solid rgba(148,163,184,0.14); backdrop-filter: blur(18px); height: 100vh; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; }
         .hub-sidebar::-webkit-scrollbar { width: 4px; } .hub-sidebar::-webkit-scrollbar-track { background: transparent; } .hub-sidebar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
-        .hub-main { min-width: 0; display: flex; flex-direction: column; height: 100vh; overflow-y: auto; overflow-x: hidden; }
+        .hub-main { min-width: 0; display: flex; flex-direction: column; height: 100vh; overflow-y: auto; overflow-x: hidden; width: 100%; }
         .hub-main::-webkit-scrollbar { width: 6px; } .hub-main::-webkit-scrollbar-track { background: transparent; } .hub-main::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
         .hub-search-result:hover { background: #f8fbff; }
         @media (max-width: 980px) {
           .hub-shell { grid-template-columns: minmax(0, 1fr); }
-          .hub-sidebar { position: fixed; inset: 0 auto 0 0; width: 280px; z-index: 50; transform: translateX(-100%); transition: transform 0.2s ease; box-shadow: 0 20px 60px rgba(15,23,42,0.18); height: 100vh; }
+          .hub-sidebar { position: fixed; inset: 0 auto 0 0; width: 280px; z-index: 100; transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 20px 60px rgba(15,23,42,0.18); height: 100vh; }
           .hub-sidebar.open { transform: translateX(0); }
-          .hub-scrim { position: fixed; inset: 0; background: rgba(15,23,42,0.4); z-index: 40; }
+          .hub-scrim { position: fixed; inset: 0; background: rgba(15,23,42,0.4); z-index: 90; backdrop-filter: blur(4px); }
+          .hub-header { padding: 0.75rem 0.75rem 0 !important; }
+          .hub-header-inner { padding: 0.65rem !important; gap: 0.5rem !important; }
+          .user-meta { display: none; }
+          .search-container { flex: 1; }
+        }
+        @media (max-width: 480px) {
+          .hub-sidebar { width: 85%; }
+          .header-search-input { display: none; }
+          .search-mobile-btn { display: inline-flex !important; }
         }
       `}</style>
 
@@ -200,16 +211,26 @@ export default function Layout({ children }) {
         </aside>
 
         <div className="hub-main">
-          <header style={{ position: 'sticky', top: 0, zIndex: 30, padding: '1rem 1rem 0', background: 'linear-gradient(180deg, rgba(248,251,255,0.96) 0%, rgba(248,251,255,0.78) 100%)', backdropFilter: 'blur(18px)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(255,255,255,0.82)', border: '1px solid rgba(148,163,184,0.14)', borderRadius: '1.25rem', padding: '0.85rem 1rem', boxShadow: '0 10px 30px rgba(15,23,42,0.06)' }}>
-              <button onClick={() => setMenuOpen((value) => !value)} style={{ display: 'inline-flex', background: '#eff6ff', color: '#1d4ed8', border: 'none', borderRadius: '0.8rem', padding: '0.65rem', cursor: 'pointer' }}>
+          <header className="hub-header" style={{ position: 'sticky', top: 0, zIndex: 30, padding: '1rem 1rem 0', background: 'linear-gradient(180deg, rgba(248,251,255,0.96) 0%, rgba(248,251,255,0.78) 100%)', backdropFilter: 'blur(18px)' }}>
+            <div className="hub-header-inner" style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(255,255,255,0.82)', border: '1px solid rgba(148,163,184,0.14)', borderRadius: '1.25rem', padding: '0.85rem 1rem', boxShadow: '0 10px 30px rgba(15,23,42,0.06)' }}>
+              <button onClick={() => setMenuOpen((value) => !value)} style={{ display: 'inline-flex', background: '#eff6ff', color: '#1d4ed8', border: 'none', borderRadius: '0.8rem', padding: '0.65rem', cursor: 'pointer', flexShrink: 0 }}>
                 <MenuIcon size={18} />
               </button>
 
-              <div ref={searchRef} style={{ position: 'relative', flex: 1 }}>
+              <div className="search-container" ref={searchRef} style={{ position: 'relative', flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', padding: '0.8rem 0.95rem', borderRadius: '1rem', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
                   <SearchIcon size={16} color="#64748b" />
-                  <input value={query} onChange={(event) => setQuery(event.target.value)} onFocus={() => results.length > 0 && setSearchOpen(true)} placeholder="Search courses, lessons, and announcements" style={{ width: '100%', border: 'none', outline: 'none', background: 'transparent', color: '#1e293b', fontSize: '0.92rem' }} />
+                  <input 
+                    className="header-search-input"
+                    value={query} 
+                    onChange={(event) => setQuery(event.target.value)} 
+                    onFocus={() => results.length > 0 && setSearchOpen(true)} 
+                    placeholder="Search courses, lessons..." 
+                    style={{ width: '100%', border: 'none', outline: 'none', background: 'transparent', color: '#1e293b', fontSize: '0.92rem' }} 
+                  />
+                  <button className="search-mobile-btn" style={{ display: 'none', background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer' }} onClick={() => setSearchOpen(true)}>
+                    <SearchIcon size={16} />
+                  </button>
                 </div>
                 {searchOpen && results.length > 0 && (
                   <div style={{ position: 'absolute', left: 0, right: 0, top: 'calc(100% + 0.5rem)', background: '#fff', borderRadius: '1rem', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 20px 45px rgba(15,23,42,0.12)' }}>
@@ -223,13 +244,13 @@ export default function Layout({ children }) {
                 )}
               </div>
 
-              <div ref={notifRef} style={{ position: 'relative' }}>
+              <div ref={notifRef} style={{ position: 'relative', flexShrink: 0 }}>
                 <button onClick={openNotifications} style={{ position: 'relative', display: 'inline-flex', background: '#fff7ed', color: '#ea580c', border: '1px solid #fed7aa', borderRadius: '0.85rem', padding: '0.72rem', cursor: 'pointer' }}>
                   <BellIcon size={18} />
                   {notifications.length > 0 && <span style={{ position: 'absolute', top: -4, right: -4, minWidth: 18, height: 18, borderRadius: 999, background: '#2563eb', color: '#fff', fontSize: '0.66rem', display: 'grid', placeItems: 'center', fontWeight: 800 }}>{notifications.length}</span>}
                 </button>
                 {notifOpen && (
-                  <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 0.6rem)', width: 320, background: '#fff', border: '1px solid #e2e8f0', borderRadius: '1rem', boxShadow: '0 20px 45px rgba(15,23,42,0.12)', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 0.6rem)', width: 280, background: '#fff', border: '1px solid #e2e8f0', borderRadius: '1rem', boxShadow: '0 20px 45px rgba(15,23,42,0.12)', overflow: 'hidden' }}>
                     <div style={{ padding: '0.95rem 1rem', borderBottom: '1px solid #f1f5f9', fontWeight: 800, color: '#0f172a' }}>Platform updates</div>
                     {(notifications.length ? notifications : [{ id: 'empty', title: 'No new announcements', body: 'You are up to date.', time: 'Now' }]).map((notification) => (
                       <div key={notification.id} style={{ padding: '0.9rem 1rem', borderBottom: '1px solid #f8fafc' }}>
@@ -245,9 +266,9 @@ export default function Layout({ children }) {
                 )}
               </div>
 
-              <button onClick={() => navigate('/profile')} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', border: 'none', background: 'transparent', cursor: 'pointer' }}>
-                <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 60%, #f59e0b 100%)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 800 }}>{initials}</div>
-                <div style={{ textAlign: 'left' }}>
+              <button onClick={() => navigate('/profile')} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', border: 'none', background: 'transparent', cursor: 'pointer', flexShrink: 0 }}>
+                <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 60%, #f59e0b 100%)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 800 }}>{initials}</div>
+                <div className="user-meta" style={{ textAlign: 'left' }}>
                   <div style={{ color: '#0f172a', fontWeight: 800, fontSize: '0.9rem' }}>{displayName}</div>
                   <div style={{ color: '#64748b', fontSize: '0.76rem', textTransform: 'capitalize' }}>{user?.role}</div>
                 </div>

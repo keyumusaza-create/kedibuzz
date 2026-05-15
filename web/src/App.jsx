@@ -9,6 +9,7 @@ const AdminDashboard = lazy(() => import('./pages/DashboardAdmin'))
 const InstructorDashboard = lazy(() => import('./pages/DashboardInstructor'))
 const Courses = lazy(() => import('./pages/Courses'))
 const CourseDetail = lazy(() => import('./pages/CourseDetail'))
+const CourseBuilder = lazy(() => import('./pages/CourseBuilder'))
 const LessonViewer = lazy(() => import('./pages/LessonViewer'))
 const MyLearning = lazy(() => import('./pages/MyLearning'))
 const Certificates = lazy(() => import('./pages/Certificates'))
@@ -120,7 +121,8 @@ function AppRoutes() {
 
         <Route path="/instructor" element={<PrivateRoute allowedRoles={['instructor']}><InstructorDashboard /></PrivateRoute>} />
         <Route path="/instructor/courses" element={<PrivateRoute allowedRoles={['instructor']}><InstructorCourses /></PrivateRoute>} />
-        <Route path="/instructor/courses/create" element={<PrivateRoute allowedRoles={['instructor']}><CreateCourse /></PrivateRoute>} />
+        <Route path="/instructor/courses/builder" element={<PrivateRoute allowedRoles={['instructor']}><CourseBuilder /></PrivateRoute>} />
+        <Route path="/instructor/courses/:course_id/builder" element={<PrivateRoute allowedRoles={['instructor']}><CourseBuilder /></PrivateRoute>} />
         <Route path="/instructor/lessons" element={<PrivateRoute allowedRoles={['instructor']}><InstructorLessons /></PrivateRoute>} />
         <Route path="/instructor/assignments" element={<PrivateRoute allowedRoles={['instructor']}><InstructorAssignments /></PrivateRoute>} />
         <Route path="/instructor/students" element={<PrivateRoute allowedRoles={['instructor']}><InstructorStudents /></PrivateRoute>} />

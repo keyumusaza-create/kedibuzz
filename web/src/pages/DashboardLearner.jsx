@@ -37,13 +37,13 @@ export default function LearnerDashboard() {
           actionLabel="Continue Learning"
           actionHref={data.active_courses?.[0] ? `/courses/${data.active_courses[0].id}` : '/courses'}
         />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+        <div className="grid grid-4" style={{ gap: '1rem' }}>
           <Metric label="Enrolled Courses" value={data.total_enrolled} hint="Your active learning stack" />
           <Metric label="Overall Progress" value={`${Math.round(data.avg_progress)}%`} hint="Across your current catalog" />
           <Metric label="Certificates" value={data.completed_courses} hint="Proof of shipped learning" />
           <Metric label="Learning Streak" value={`${data.learning_streak} days`} hint="Consistency beats intensity" />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
           <Panel title="Continue Learning" subtitle="Pick up where your progress is strongest">
             <div style={{ display: 'grid', gap: '0.85rem' }}>
               {(data.active_courses || []).length > 0 ? data.active_courses.map((course) => (
@@ -71,7 +71,7 @@ export default function LearnerDashboard() {
             </div>
           </Panel>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
           <Panel title="Recent Lessons" subtitle="Continue the latest concepts you touched">
             <div style={{ display: 'grid', gap: '0.75rem' }}>
               {(data.recent_lessons || []).map((lesson) => (
@@ -101,11 +101,11 @@ export default function LearnerDashboard() {
 
 function Hero({ eyebrow, title, body, actionLabel, actionHref }) {
   return (
-    <section style={{ ...cardStyle, padding: '2rem', background: 'linear-gradient(135deg, #0f172a 0%, #1d4ed8 55%, #f59e0b 130%)', color: '#fff' }}>
+    <section style={{ ...cardStyle, padding: 'clamp(1rem, 5vw, 2rem)', background: 'linear-gradient(135deg, #0f172a 0%, #1d4ed8 55%, #f59e0b 130%)', color: '#fff' }}>
       <p style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.16em', fontWeight: 800, color: '#bfdbfe', marginBottom: '0.6rem' }}>{eyebrow}</p>
-      <h1 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', lineHeight: 1.05, fontWeight: 900, maxWidth: 680, marginBottom: '0.9rem' }}>{title}</h1>
-      <p style={{ maxWidth: 660, color: 'rgba(255,255,255,0.84)', fontSize: '1rem', lineHeight: 1.65, marginBottom: '1.2rem' }}>{body}</p>
-      {actionLabel && <Link to={actionHref} style={{ display: 'inline-flex', padding: '0.85rem 1.2rem', borderRadius: '999px', background: '#fff', color: '#0f172a', fontWeight: 800, textDecoration: 'none' }}>{actionLabel}</Link>}
+      <h1 style={{ fontSize: 'clamp(1.5rem, 6vw, 3rem)', lineHeight: 1.1, fontWeight: 900, maxWidth: 680, marginBottom: '0.9rem' }}>{title}</h1>
+      <p style={{ maxWidth: 660, color: 'rgba(255,255,255,0.84)', fontSize: 'clamp(0.9rem, 2vw, 1rem)', lineHeight: 1.6, marginBottom: '1.2rem' }}>{body}</p>
+      {actionLabel && <Link to={actionHref} style={{ display: 'inline-flex', padding: '0.8rem 1.4rem', borderRadius: '999px', background: '#fff', color: '#0f172a', fontWeight: 800, textDecoration: 'none', fontSize: '0.9rem' }}>{actionLabel}</Link>}
     </section>
   )
 }

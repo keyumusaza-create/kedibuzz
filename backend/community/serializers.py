@@ -11,7 +11,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = ['id', 'post', 'author', 'author_name', 'content', 'created_at', 'updated_at']
+        fields = ['id', 'post', 'author', 'author_name', 'content', 'image', 'created_at', 'updated_at']
         read_only_fields = ['author', 'created_at']
 
 class PostSerializer(serializers.ModelSerializer):
@@ -25,7 +25,7 @@ class PostSerializer(serializers.ModelSerializer):
         model = Post
         fields = [
             'id', 'author', 'author_name', 'category', 'category_name', 
-            'title', 'content', 'tags', 'likes_count', 'is_liked',
+            'title', 'content', 'image', 'post_type', 'tags', 'likes_count', 'is_liked',
             'comments_count', 'created_at', 'updated_at'
         ]
         read_only_fields = ['author', 'likes', 'created_at']

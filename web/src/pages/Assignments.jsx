@@ -105,14 +105,19 @@ export default function Assignments() {
     <Layout>
       <style>{`
         .glass-panel { background: rgba(255,255,255,0.9); border: 1px solid rgba(148,163,184,0.15); box-shadow: 0 10px 30px rgba(15,23,42,0.04); border-radius: 1.25rem; padding: 1.5rem; }
-        .tab-btn { background: transparent; border: none; color: #64748b; font-weight: 700; padding: 0.75rem 1.25rem; border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.2s; font-size: 0.95rem; }
+        .tab-btn { background: transparent; border: none; color: #64748b; font-weight: 700; padding: 0.75rem 1.25rem; border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.2s; font-size: 0.95rem; white-space: nowrap; }
         .tab-btn.active { color: #2563eb; border-bottom-color: #2563eb; }
         .assignment-card { border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1.25rem; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; background: #fff; }
         .assignment-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(15,23,42,0.06); border-color: #cbd5e1; }
-        .status-badge { display: inline-flex; alignItems: center; gap: 0.4rem; padding: 0.3rem 0.75rem; borderRadius: 999px; fontSize: 0.75rem; fontWeight: 800; textTransform: uppercase; letterSpacing: 0.05em; }
+        .status-badge { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
         .status-badge.pending { background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; }
         .status-badge.approved { background: #dcfce3; color: #16a34a; border: 1px solid #bbf7d0; }
         .status-badge.needs_revision { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        @media (max-width: 640px) {
+          .assn-card-inner { flex-direction: column !important; align-items: flex-start !important; gap: 0.8rem !important; }
+          .assn-meta { flex-direction: column !important; gap: 0.4rem !important; }
+          .modal-content { padding: 1.25rem !important; width: 95% !important; border-radius: 1rem !important; }
+        }
         .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.5); backdrop-filter: blur(4px); z-index: 1000; display: grid; place-items: center; padding: 1rem; }
         .modal-content { background: #fff; width: 100%; max-width: 600px; border-radius: 1.5rem; padding: 2rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); max-height: 90vh; overflow-y: auto; }
       `}</style>
@@ -122,11 +127,11 @@ export default function Assignments() {
         <p style={{ color: '#64748b', fontSize: '1.05rem', marginBottom: '2rem' }}>Complete projects and exercises to reinforce your learning.</p>
 
         <div className="glass-panel" style={{ padding: 0, overflow: 'hidden' }}>
-          <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', padding: '0 1rem' }}>
-            <button className={`tab-btn \${activeTab === 'pending' ? 'active' : ''}`} onClick={() => setActiveTab('pending')}>
+          <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', padding: '0 1rem', overflowX: 'auto' }}>
+            <button className={`tab-btn ${activeTab === 'pending' ? 'active' : ''}`} onClick={() => setActiveTab('pending')}>
               Pending ({pendingAssignments.length})
             </button>
-            <button className={`tab-btn \${activeTab === 'completed' ? 'active' : ''}`} onClick={() => setActiveTab('completed')}>
+            <button className={`tab-btn ${activeTab === 'completed' ? 'active' : ''}`} onClick={() => setActiveTab('completed')}>
               Completed ({completedSubmissions.length})
             </button>
           </div>
@@ -142,11 +147,11 @@ export default function Assignments() {
                 ) : (
                   pendingAssignments.map(assignment => (
                     <div key={assignment.id} className="assignment-card" onClick={() => setSelectedAssignment(assignment)}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+                      <div className="assn-card-inner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
                         <div>
                           <p style={{ color: '#2563eb', fontSize: '0.8rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.25rem' }}>{assignment.course_title}</p>
                           <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.5rem' }}>{assignment.title}</h3>
-                          <div style={{ display: 'flex', gap: '1rem', color: '#64748b', fontSize: '0.85rem', fontWeight: 600 }}>
+                          <div className="assn-meta" style={{ display: 'flex', gap: '1rem', color: '#64748b', fontSize: '0.85rem', fontWeight: 600 }}>
                             <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                               <CalendarIcon size={14} /> Due: {assignment.due_date ? new Date(assignment.due_date).toLocaleDateString() : 'No due date'}
                             </span>
@@ -172,7 +177,7 @@ export default function Assignments() {
                 ) : (
                   completedSubmissions.map(sub => (
                     <div key={sub.id} className="assignment-card" style={{ cursor: 'default' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+                      <div className="assn-card-inner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
                         <div>
                           <p style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.25rem' }}>Submitted on {new Date(sub.submitted_at).toLocaleDateString()}</p>
                           <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.5rem' }}>{sub.assignment_title}</h3>

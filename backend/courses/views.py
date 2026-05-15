@@ -3,11 +3,11 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from .models import (
-    Category, Course, Lesson, Enrollment, Certificate, Announcement, Assignment, Submission
+    Category, Course, Module, Lesson, Enrollment, Certificate, Announcement, Assignment, Submission
 )
 from .bootstrap import ensure_learning_seed_data
 from .serializers import (
-    CategorySerializer, CourseSerializer, CourseDetailSerializer, LessonSerializer,
+    CategorySerializer, CourseSerializer, CourseDetailSerializer, ModuleSerializer, LessonSerializer,
     EnrollmentSerializer, CertificateSerializer, AnnouncementSerializer,
     AssignmentSerializer, SubmissionSerializer
 )
@@ -81,6 +81,22 @@ class CourseViewSet(viewsets.ModelViewSet):
         if not created:
             return Response({'detail': 'Already enrolled', 'enrollment': EnrollmentSerializer(enrollment, context={'request': request}).data}, status=status.HTTP_200_OK)
         return Response(EnrollmentSerializer(enrollment).data, status=status.HTTP_201_CREATED)
+
+class ModuleViewSet(viewsets.ModelViewSet):
+    queryset = Module.objects.all()
+    serializer_class = ModuleSerializer
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsAdminOrInstructorRole()]
+        return [permissions.IsAuthenticated()]
+
+    def get_queryset(self):
+        course_id = self.request.query_params.get('course_id')
+        queryset = self.queryset.select_related('course')
+        if course_id:
+            queryset = queryset.filter(course_id=course_id)
+        return queryset.order_by('order')
 
 class LessonViewSet(viewsets.ModelViewSet):
     queryset = Lesson.objects.all()

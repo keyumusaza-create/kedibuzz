@@ -175,7 +175,7 @@ export default function Signup() {
                 </div>
               )}
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.9rem', marginBottom: '1rem' }}>
+              <div className="grid grid-2" style={{ gap: '0.9rem', marginBottom: '1rem' }}>
                 <InputField label="First Name" value={form.first_name} onChange={(value) => handleChange('first_name', value)} icon={<UserIcon />} placeholder="Ada" style={baseInput} />
                 <InputField label="Last Name" value={form.last_name} onChange={(value) => handleChange('last_name', value)} icon={<UserIcon />} placeholder="Lovelace" style={baseInput} />
               </div>

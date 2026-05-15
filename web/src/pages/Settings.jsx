@@ -57,10 +57,10 @@ export default function Settings() {
   return (
     <Layout>
       <div style={{ display: 'grid', gap: '1rem' }}>
-        <section style={{ background: 'linear-gradient(135deg, #eff6ff 0%, #ffffff 46%, #ffedd5 100%)', borderRadius: '1.5rem', padding: '2rem', border: '1px solid rgba(148,163,184,0.16)', boxShadow: '0 18px 40px rgba(15,23,42,0.06)' }}>
+        <section style={{ background: 'linear-gradient(135deg, #eff6ff 0%, #ffffff 46%, #ffedd5 100%)', borderRadius: '1.5rem', padding: 'clamp(1.25rem, 5vw, 2rem)', border: '1px solid rgba(148,163,184,0.16)', boxShadow: '0 18px 40px rgba(15,23,42,0.06)' }}>
           <p style={{ textTransform: 'uppercase', letterSpacing: '0.14em', fontSize: '0.8rem', fontWeight: 800, color: '#1d4ed8', marginBottom: '0.45rem' }}>Settings</p>
-          <h1 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', lineHeight: 1.05, color: '#0f172a', fontWeight: 900, marginBottom: '0.75rem' }}>Account settings for your developer journey.</h1>
-          <p style={{ color: '#51657f', lineHeight: 1.65, maxWidth: 720 }}>Update your profile details and security preferences while keeping the same authentication experience.</p>
+          <h1 style={{ fontSize: 'clamp(1.75rem, 5vw, 3rem)', lineHeight: 1.1, color: '#0f172a', fontWeight: 900, marginBottom: '0.75rem' }}>Account settings for your developer journey.</h1>
+          <p style={{ color: '#51657f', lineHeight: 1.6, maxWidth: 720, fontSize: 'clamp(0.9rem, 2.5vw, 1rem)' }}>Update your profile details and security preferences while keeping the same authentication experience.</p>
         </section>
 
         {(notice || error) && (
@@ -69,7 +69,7 @@ export default function Settings() {
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))', gap: '1rem' }}>
           <section style={sectionStyle}>
             <h2 style={sectionTitle}>Profile Preferences</h2>
             <form onSubmit={saveProfile} style={{ display: 'grid', gap: '0.9rem' }}>

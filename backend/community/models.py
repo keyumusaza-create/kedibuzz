@@ -20,6 +20,8 @@ class Post(models.Model):
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='posts')
     title = models.CharField(max_length=255)
     content = models.TextField()
+    image = models.ImageField(upload_to='community/posts/', null=True, blank=True)
+    post_type = models.CharField(max_length=50, default='discussion', help_text="discussion, issue, project")
     tags = models.CharField(max_length=255, blank=True, help_text="Comma-separated tags")
     likes = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='liked_posts', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -36,6 +38,7 @@ class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='post_comments')
     content = models.TextField()
+    image = models.ImageField(upload_to='community/comments/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

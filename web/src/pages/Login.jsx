@@ -258,13 +258,13 @@ export default function Login() {
               </div>
 
               {/* Remember me + Forgot password */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.625rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.625rem', gap: '0.5rem', flexWrap: 'wrap' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.875rem', color: '#374151', fontWeight: 500, userSelect: 'none' }}>
                   <input
                     type="checkbox"
                     checked={rememberMe}
                     onChange={e => setRememberMe(e.target.checked)}
-                    style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#2563eb' }}
+                    style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#2563eb', margin: 0 }}
                   />
                   Remember me
                 </label>

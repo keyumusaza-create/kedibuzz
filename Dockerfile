@@ -33,4 +33,4 @@ RUN mkdir -p /app/backend/staticfiles /app/backend/media
 
 # Expose port and run
 EXPOSE 8000
-CMD ["sh", "-c", "python manage.py migrate --noinput && python -c \"import django; django.setup(); from courses.bootstrap import ensure_learning_seed_data; ensure_learning_seed_data()\" && python manage.py collectstatic --noinput && gunicorn --bind 0.0.0.0:${PORT:-8000} kediscs.wsgi:application"]
+CMD ["sh", "-c", "python manage.py migrate --noinput && python manage.py bootstrap_data && python manage.py collectstatic --noinput && gunicorn --bind 0.0.0.0:${PORT:-8000} kediscs.wsgi:application"]

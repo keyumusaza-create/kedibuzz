@@ -66,7 +66,7 @@ export default function CertificateDetail() {
             zIndex: 2
           }}>
             <img 
-              src="/kedi-logo.png" 
+              src={`${import.meta.env.BASE_URL}kedi-logo.png`} 
               alt="KEDI Developer Hub" 
               style={{ 
                 width: '80px', 

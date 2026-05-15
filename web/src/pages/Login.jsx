@@ -44,7 +44,7 @@ const ArrowRightIcon = () => (
 )
 
 const KEDILogo = () => (
-  <img src="/kedi-logo.png" alt="KEDI Developer Hub" style={{ width: '320px', height: 'auto' }} />
+  <img src={`${import.meta.env.BASE_URL}kedi-logo.png`} alt="KEDI Developer Hub" style={{ width: '320px', height: 'auto' }} />
 )
 
 const DevIllustration = () => (

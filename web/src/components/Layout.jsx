@@ -162,7 +162,7 @@ export default function Layout({ children }) {
       <div className="hub-shell">
         <aside className={`hub-sidebar ${menuOpen ? 'open' : ''}`}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem', marginBottom: '1.4rem' }}>
-            <img src="/kedi-logo.png" alt="KEDI Developer Hub" style={{ width: 58, height: 'auto' }} />
+            <img src={`${import.meta.env.BASE_URL}kedi-logo.png`} alt="KEDI Developer Hub" style={{ width: 58, height: 'auto' }} />
             <div>
               <p style={{ fontSize: '0.78rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#1d4ed8', fontWeight: 800 }}>KEDI</p>
               <h1 style={{ fontSize: '1rem', color: '#0f172a', fontWeight: 800 }}>Developer Hub</h1>

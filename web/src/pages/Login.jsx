@@ -113,9 +113,14 @@ export default function Login() {
     setNotice('')
     setLoading(true)
     try {
-      const userData = await login(email, password)
+      const result = await login(email, password)
+      // If profile is incomplete, redirect to profile page first
+      if (!result.profile_completed) {
+        navigate('/profile', { replace: true })
+        return
+      }
       const roleRoutes = { admin: '/admin', instructor: '/instructor', learner: '/my-learning' }
-      navigate(roleRoutes[userData.role] || '/')
+      navigate(roleRoutes[result.user.role] || '/', { replace: true })
     } catch (err) {
       setError(err.response?.data?.error || 'Invalid email or password')
     } finally {
@@ -145,7 +150,12 @@ export default function Login() {
         .kedi-btn:hover:not(:disabled) { opacity: 0.91; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(37,99,235,0.4) !important; }
         .kedi-btn:active:not(:disabled) { transform: translateY(0); }
         .kedi-forgot:hover { text-decoration: underline; }
-        @media (max-width: 640px) { .kedi-left { display: none !important; } .kedi-right { padding: 2rem 1.5rem !important; } }
+        .kedi-mobile-logo { display: none; margin-bottom: 2rem; justify-content: center; }
+        @media (max-width: 640px) { 
+          .kedi-left { display: none !important; } 
+          .kedi-right { padding: 2.5rem 1.75rem !important; } 
+          .kedi-mobile-logo { display: flex !important; }
+        }
       `}</style>
 
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#d5e4ee', padding: '1rem' }}>
@@ -194,6 +204,7 @@ export default function Login() {
 
           {/* ── Right panel: form ── */}
           <div className="kedi-right" style={{ flex: 1, background: 'white', padding: '3rem 2.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <div className="kedi-mobile-logo"><KEDILogo /></div>
 
             <div style={{ marginBottom: '1.875rem' }}>
               <h1 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.375rem' }}>Welcome Back!</h1>
@@ -309,9 +320,12 @@ export default function Login() {
                 New here? <Link to="/signup" style={{ color: '#2563eb', fontWeight: 700, textDecoration: 'none' }}>Create a learner account</Link>
               </p>
               <p style={{ fontSize: '0.78rem', color: '#94a3b8', marginBottom: '0.375rem' }}>Secured with care</p>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', marginBottom: '1.25rem' }}>
                 <ShieldIcon />
                 <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Your data is safe and protected</span>
+              </div>
+              <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                Need help? <a href="mailto:support@kedihub.com" style={{ color: '#2563eb', fontWeight: 600, textDecoration: 'none' }}>Contact Support</a>
               </div>
             </div>
           </div>

@@ -21,5 +21,5 @@ class InstructorProfileAdmin(admin.ModelAdmin):
 
 @admin.register(LearnerProfile)
 class LearnerProfileAdmin(admin.ModelAdmin):
-    list_display = ['user', 'learner_code', 'date_of_birth', 'guardian_name']
+    list_display = ['user', 'learner_code', 'guardian_name']
     search_fields = ['user__first_name', 'user__last_name', 'learner_code']

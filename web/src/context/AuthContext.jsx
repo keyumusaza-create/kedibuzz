@@ -7,16 +7,24 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
+  const fetchMe = async () => {
+    try {
+      const res = await api.get('/accounts/users/me/')
+      setUser(res.data)
+      return res.data
+    } catch {
+      localStorage.removeItem('token')
+      delete api.defaults.headers.common['Authorization']
+      setUser(null)
+      return null
+    }
+  }
+
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (token) {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`
-      api.get('/accounts/users/me/')
-        .then(res => setUser(res.data))
-        .catch(() => {
-          localStorage.removeItem('token')
-        })
-        .finally(() => setLoading(false))
+      fetchMe().finally(() => setLoading(false))
     } else {
       setLoading(false)
     }
@@ -24,15 +32,23 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     const res = await api.post('/accounts/login/login/', { email, password })
-    const { access, user: userData } = res.data
+    const { access, user: userData, profile_completed } = res.data
     localStorage.setItem('token', access)
     api.defaults.headers.common['Authorization'] = `Bearer ${access}`
     setUser(userData)
-    return userData
+    return { user: userData, profile_completed }
   }
 
   const signup = async (payload) => {
     const res = await api.post('/accounts/users/signup/', payload)
+    return res.data
+  }
+
+  const updateUser = async (formData) => {
+    const res = await api.patch('/accounts/users/me/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    setUser(res.data)
     return res.data
   }
 
@@ -43,7 +59,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, signup, updateUser, logout, loading }}>
       {children}
     </AuthContext.Provider>
   )

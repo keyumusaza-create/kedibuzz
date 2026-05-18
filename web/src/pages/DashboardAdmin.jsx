@@ -48,8 +48,8 @@ export default function AdminDashboard() {
             <h1 style={{ fontSize: '2.2rem', fontWeight: 900, color: '#0f172a', lineHeight: 1 }}>Mission Control</h1>
           </div>
           <div style={{ display: 'flex', gap: '0.75rem' }}>
-            <QuickAction label="Add Instructor" to="/admin/instructors" />
-            <QuickAction label="Publish Course" to="/admin/courses" primary />
+            <QuickAction label="Add Instructor" to="/admin/users" />
+            <QuickAction label="Publish Course" to="/instructor/courses/builder" primary />
           </div>
         </header>
 
@@ -76,13 +76,24 @@ export default function AdminDashboard() {
                 </select>
               </div>
               <div style={{ height: '200px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '1rem', padding: '0 1rem' }}>
-                {/* Mock Chart Visualization */}
-                {[45, 62, 58, 85, 102, 128].map((h, i) => (
-                  <div key={i} style={{ flex: 1, display: 'grid', gap: '0.5rem', textAlign: 'center' }}>
-                    <div style={{ height: `${h}px`, background: i === 5 ? 'linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%)' : '#e2e8f0', borderRadius: '4px 4px 0 0' }} />
-                    <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b' }}>{['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'][i]}</span>
-                  </div>
-                ))}
+                {data.registration_growth ? data.registration_growth.map((item, i) => {
+                  const maxCount = Math.max(...data.registration_growth.map(g => g.count), 1)
+                  const height = (item.count / maxCount) * 150 + 10
+                  const isCurrent = i === data.registration_growth.length - 1
+                  return (
+                    <div key={i} style={{ flex: 1, display: 'grid', gap: '0.5rem', textAlign: 'center' }}>
+                      <div style={{ 
+                        height: `${height}px`, 
+                        background: isCurrent ? 'linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%)' : '#e2e8f0', 
+                        borderRadius: '4px 4px 0 0',
+                        transition: 'height 0.5s ease-out'
+                      }} />
+                      <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b' }}>{item.month}</span>
+                    </div>
+                  )
+                }) : (
+                  <div style={{ margin: 'auto', color: '#cbd5e1' }}>No growth data available</div>
+                )}
               </div>
             </div>
 
@@ -113,7 +124,9 @@ export default function AdminDashboard() {
                           {course.is_published ? 'Published' : 'Draft'}
                         </span>
                       </td>
-                      <td><button style={{ border: 'none', background: 'transparent', color: '#2563eb', fontWeight: 700, cursor: 'pointer' }}>Edit</button></td>
+                      <td>
+                        <Link to={`/courses/${course.id}`} style={{ border: 'none', background: 'transparent', color: '#2563eb', fontWeight: 700, cursor: 'pointer', textDecoration: 'none' }}>View</Link>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -140,7 +153,7 @@ export default function AdminDashboard() {
                   <ActivityLine key={i} {...act} />
                 ))}
               </div>
-              <button style={{ width: '100%', marginTop: '1.5rem', padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', background: '#fff', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer' }}>Full Activity Log</button>
+              <Link to="/admin/reports" style={{ display: 'block', width: '100%', marginTop: '1.5rem', padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', background: '#fff', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', textDecoration: 'none', color: '#0f172a', textAlign: 'center' }}>Full Activity Log</Link>
             </div>
 
             <div style={{ ...cardStyle, background: 'linear-gradient(135deg, #0f172a 0%, #172554 100%)', color: '#fff', border: 'none' }}>

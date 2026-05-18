@@ -71,6 +71,7 @@ function PrivateRoute({ children, allowedRoles }) {
 
   if (!user) return <Navigate to="/login" replace />
   if (allowedRoles && !allowedRoles.includes(user.role)) return <Navigate to="/" replace />
+  
   return children
 }
 
@@ -102,7 +103,7 @@ function AppRoutes() {
         <Route path="/community" element={<PrivateRoute allowedRoles={allRoles}><Community /></PrivateRoute>} />
         <Route path="/practice" element={<PrivateRoute allowedRoles={allRoles}><PracticeLab /></PrivateRoute>} />
         <Route path="/certificates" element={<PrivateRoute allowedRoles={['admin', 'learner']}><Certificates /></PrivateRoute>} />
-        <Route path="/certificate/:id" element={<PrivateRoute allowedRoles={['learner']}><CertificateDetail /></PrivateRoute>} />
+        <Route path="/certificate/:id" element={<PrivateRoute allowedRoles={['admin', 'learner']}><CertificateDetail /></PrivateRoute>} />
         <Route path="/announcements" element={<PrivateRoute allowedRoles={allRoles}><Announcements /></PrivateRoute>} />
         <Route path="/profile" element={<PrivateRoute allowedRoles={allRoles}><Profile /></PrivateRoute>} />
         <Route path="/settings" element={<PrivateRoute allowedRoles={allRoles}><Settings /></PrivateRoute>} />

@@ -6,7 +6,8 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from .models import InstructorProfile, LearnerProfile
 from .serializers import (
-    UserSerializer, UserCreateSerializer, LearnerSignupSerializer, LoginSerializer,
+    UserSerializer, UserCreateSerializer, UserProfileUpdateSerializer,
+    LearnerSignupSerializer, LoginSerializer,
     InstructorProfileSerializer, LearnerProfileSerializer
 )
 
@@ -40,6 +41,8 @@ class UserViewSet(viewsets.ModelViewSet):
             return UserCreateSerializer
         if self.action == 'signup':
             return LearnerSignupSerializer
+        if self.action == 'me' and self.request.method.lower() == 'patch':
+            return UserProfileUpdateSerializer
         return UserSerializer
 
     def get_permissions(self):
@@ -60,15 +63,17 @@ class UserViewSet(viewsets.ModelViewSet):
             return queryset.filter(id=user.id)
         return queryset
 
-    @action(detail=False, methods=['get', 'patch'])
+    @action(detail=False, methods=['get', 'patch'], url_path='me')
     def me(self, request):
-        """Get or update current user."""
+        """Get or update current user. Supports file upload for avatar."""
         if request.method.lower() == 'patch':
-            serializer = UserSerializer(request.user, data=request.data, partial=True)
+            serializer = UserProfileUpdateSerializer(request.user, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            return Response(serializer.data)
-        serializer = UserSerializer(request.user)
+            # Return full user data
+            full_serializer = UserSerializer(request.user, context={'request': request})
+            return Response(full_serializer.data)
+        serializer = UserSerializer(request.user, context={'request': request})
         return Response(serializer.data)
 
     @action(detail=False, methods=['post'])
@@ -138,7 +143,8 @@ class LoginViewSet(viewsets.ViewSet):
                 return Response({
                     'access': str(refresh.access_token),
                     'refresh': str(refresh),
-                    'user': UserSerializer(user).data
+                    'user': UserSerializer(user, context={'request': request}).data,
+                    'profile_completed': user.profile_completed,
                 })
             return Response(
                 {'error': 'Invalid credentials'},

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import Layout from '../components/Layout'
 import api from '../services/api'
 import { useAuth } from '../context/AuthContext'
@@ -20,6 +20,7 @@ const gradientTextStyle = {
 
 export default function InstructorDashboard() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -88,8 +89,8 @@ export default function InstructorDashboard() {
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <ActionButton label="Edit" />
-                    <ActionButton label="Lessons" />
+                    <ActionButton label="Edit" onClick={() => navigate(`/instructor/courses/${course.id}/builder`)} />
+                    <ActionButton label="Lessons" onClick={() => navigate(`/instructor/courses/${course.id}/builder`)} />
                     <ActionButton label="Analytics" primary />
                   </div>
                 </article>
@@ -146,19 +147,22 @@ function StatCard({ label, value, hint, icon, color }) {
   )
 }
 
-function ActionButton({ label, primary }) {
+function ActionButton({ label, primary, onClick }) {
   return (
-    <button style={{ 
-      flex: 1, 
-      padding: '0.65rem', 
-      borderRadius: '0.75rem', 
-      border: primary ? 'none' : '1.5px solid #e2e8f0', 
-      background: primary ? '#0f172a' : '#fff',
-      color: primary ? '#fff' : '#0f172a',
-      fontSize: '0.85rem',
-      fontWeight: 800,
-      cursor: 'pointer'
-    }}>
+    <button 
+      onClick={onClick}
+      style={{ 
+        flex: 1, 
+        padding: '0.65rem', 
+        borderRadius: '0.75rem', 
+        border: primary ? 'none' : '1.5px solid #e2e8f0', 
+        background: primary ? '#0f172a' : '#fff',
+        color: primary ? '#fff' : '#0f172a',
+        fontSize: '0.85rem',
+        fontWeight: 800,
+        cursor: 'pointer'
+      }}
+    >
       {label}
     </button>
   )

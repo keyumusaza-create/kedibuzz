@@ -27,8 +27,7 @@ const ChartIcon = (p) => <Svg {...p}><path d="M3 3v18h18" /><path d="m19 9-5 5-4
 const NAV = {
   admin: [
     { path: '/admin', label: 'Dashboard', Icon: HomeIcon },
-    { path: '/admin/users', label: 'Users', Icon: UsersIcon },
-    { path: '/admin/instructors', label: 'Instructors', Icon: UsersIcon },
+    { path: '/admin/users', label: 'Users & Instructors', Icon: UsersIcon },
     { path: '/admin/students', label: 'Students', Icon: UsersIcon },
     { path: '/admin/courses', label: 'Courses', Icon: CourseIcon },
     { path: '/admin/categories', label: 'Categories', Icon: LayersIcon },
@@ -41,10 +40,9 @@ const NAV = {
     { path: '/settings', label: 'Settings', Icon: GearIcon },
   ],
   instructor: [
-
     { path: '/instructor', label: 'Dashboard', Icon: HomeIcon },
     { path: '/instructor/courses', label: 'My Courses', Icon: CourseIcon },
-    { path: '/instructor/courses/create', label: 'Create Course', Icon: RocketIcon },
+    { path: '/instructor/courses/builder', label: 'Create Course', Icon: RocketIcon },
     { path: '/instructor/lessons', label: 'Lessons', Icon: LayersIcon },
     { path: '/instructor/assignments', label: 'Assignments', Icon: GearIcon },
     { path: '/instructor/students', label: 'Students', Icon: UsersIcon },
@@ -79,8 +77,26 @@ export default function Layout({ children }) {
   const [notifications, setNotifications] = useState([])
   const [notifOpen, setNotifOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [showProfileReminder, setShowProfileReminder] = useState(false)
   const searchRef = useRef(null)
   const notifRef = useRef(null)
+
+  // ─── Profile incomplete reminder (every 30s) ─────────────────────────
+  const isProfileRoute = location.pathname === '/profile'
+  const profileIncomplete = user && !user.profile_completed && !isProfileRoute
+
+  useEffect(() => {
+    if (!profileIncomplete) {
+      setShowProfileReminder(false)
+      return
+    }
+    // Show immediately on mount, then every 30s
+    setShowProfileReminder(true)
+    const interval = setInterval(() => {
+      setShowProfileReminder(true)
+    }, 30000)
+    return () => clearInterval(interval)
+  }, [profileIncomplete])
 
   const navItems = NAV[user?.role] || NAV.learner
   const initials = useMemo(() => ((user?.first_name?.[0] || '') + (user?.last_name?.[0] || '')).toUpperCase() || user?.username?.[0]?.toUpperCase() || 'K', [user])
@@ -167,6 +183,49 @@ export default function Layout({ children }) {
           .search-mobile-btn { display: inline-flex !important; }
         }
       `}</style>
+
+      {/* ─── Profile Incomplete Reminder Modal ───────────────────────── */}
+      {showProfileReminder && profileIncomplete && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 2000, display: 'grid', placeItems: 'center',
+          background: 'rgba(15,23,42,0.5)', backdropFilter: 'blur(4px)',
+        }}>
+          <div style={{
+            background: '#fff', borderRadius: '1.5rem', padding: '2rem',
+            width: '90%', maxWidth: 420, boxShadow: '0 25px 60px rgba(0,0,0,0.25)',
+            textAlign: 'center',
+          }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>✏️</div>
+            <h3 style={{ fontSize: '1.3rem', fontWeight: 900, color: '#0f172a', marginBottom: '0.5rem' }}>
+              Complete Your Profile
+            </h3>
+            <p style={{ color: '#51657f', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '1.5rem' }}>
+              Please fill in your name, date of birth, and other details to get the full experience.
+            </p>
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+              <button
+                onClick={() => { setShowProfileReminder(false); navigate('/profile') }}
+                style={{
+                  padding: '0.75rem 1.5rem', borderRadius: '0.75rem', border: 'none',
+                  background: '#0f172a', color: '#fff', fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem',
+                }}
+              >
+                Complete Profile
+              </button>
+              <button
+                onClick={() => setShowProfileReminder(false)}
+                style={{
+                  padding: '0.75rem 1.25rem', borderRadius: '0.75rem',
+                  border: '1.5px solid #e2e8f0', background: '#fff',
+                  color: '#64748b', fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem',
+                }}
+              >
+                Later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {menuOpen && <div className="hub-scrim" onClick={() => setMenuOpen(false)} />}
 
@@ -267,7 +326,13 @@ export default function Layout({ children }) {
               </div>
 
               <button onClick={() => navigate('/profile')} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', border: 'none', background: 'transparent', cursor: 'pointer', flexShrink: 0 }}>
-                <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 60%, #f59e0b 100%)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 800 }}>{initials}</div>
+                <div style={{ width: 40, height: 40, borderRadius: '50%', overflow: 'hidden', background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 60%, #f59e0b 100%)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 800, flexShrink: 0 }}>
+                  {user?.avatar_url ? (
+                    <img src={user.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    initials
+                  )}
+                </div>
                 <div className="user-meta" style={{ textAlign: 'left' }}>
                   <div style={{ color: '#0f172a', fontWeight: 800, fontSize: '0.9rem' }}>{displayName}</div>
                   <div style={{ color: '#64748b', fontSize: '0.76rem', textTransform: 'capitalize' }}>{user?.role}</div>

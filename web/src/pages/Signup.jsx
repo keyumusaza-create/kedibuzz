@@ -137,7 +137,12 @@ export default function Signup() {
         .kedi-input:focus { border-color: #2563eb !important; box-shadow: 0 0 0 3px rgba(37,99,235,0.12) !important; background: #fff !important; }
         .kedi-btn:hover:not(:disabled) { opacity: 0.91; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(37,99,235,0.4) !important; }
         .kedi-btn:active:not(:disabled) { transform: translateY(0); }
-        @media (max-width: 640px) { .kedi-left { display: none !important; } .kedi-right { padding: 2rem 1.5rem !important; } }
+        .kedi-mobile-logo { display: none; margin-bottom: 2rem; justify-content: center; }
+        @media (max-width: 640px) { 
+          .kedi-left { display: none !important; } 
+          .kedi-right { padding: 2.5rem 1.75rem !important; } 
+          .kedi-mobile-logo { display: flex !important; }
+        }
       `}</style>
 
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#d5e4ee', padding: '1rem' }}>
@@ -163,6 +168,7 @@ export default function Signup() {
           </div>
 
           <div className="kedi-right" style={{ flex: 1, background: 'white', padding: '2.5rem 2.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <div className="kedi-mobile-logo"><KEDILogo /></div>
             <div style={{ marginBottom: '1.5rem' }}>
               <h1 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.375rem' }}>Create Your Account</h1>
               <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Join KEDI Developer Hub as a learner.</p>
@@ -239,9 +245,12 @@ export default function Signup() {
               <p style={{ fontSize: '0.82rem', color: '#64748b', marginBottom: '0.8rem' }}>
                 Already have an account? <Link to="/login" style={{ color: '#2563eb', fontWeight: 700, textDecoration: 'none' }}>Sign in</Link>
               </p>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', marginBottom: '1.25rem' }}>
                 <ShieldIcon />
                 <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Your learning profile is safe and protected</span>
+              </div>
+              <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                Need help? <a href="mailto:support@kedihub.com" style={{ color: '#2563eb', fontWeight: 600, textDecoration: 'none' }}>Contact Support</a>
               </div>
             </div>
           </div>

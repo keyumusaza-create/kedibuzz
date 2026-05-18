@@ -35,8 +35,11 @@ export default function LearningPath() {
           api.get('/courses/'),
           api.get('/enrollments/')
         ])
-        setCourses(coursesRes.data.results || coursesRes.data || [])
-        setEnrollments(enrollmentsRes.data.results || enrollmentsRes.data || [])
+        const coursesData = coursesRes.data.results || coursesRes.data
+        const enrollmentsData = enrollmentsRes.data.results || enrollmentsRes.data
+        
+        setCourses(Array.isArray(coursesData) ? coursesData : [])
+        setEnrollments(Array.isArray(enrollmentsData) ? enrollmentsData : [])
       } catch (err) {
         console.error("Failed to fetch learning path data", err)
       } finally {
@@ -54,11 +57,15 @@ export default function LearningPath() {
     )
   }
 
+  // Use safe versions of data for filtering and lookups
+  const safeCourses = Array.isArray(courses) ? courses : []
+  const safeEnrollments = Array.isArray(enrollments) ? enrollments : []
+
   // Group courses by difficulty to create a roadmap
   const groupedCourses = {
-    beginner: courses.filter(c => c.difficulty === 'beginner'),
-    intermediate: courses.filter(c => c.difficulty === 'intermediate'),
-    advanced: courses.filter(c => c.difficulty === 'advanced')
+    beginner: safeCourses.filter(c => c.difficulty === 'beginner'),
+    intermediate: safeCourses.filter(c => c.difficulty === 'intermediate'),
+    advanced: safeCourses.filter(c => c.difficulty === 'advanced')
   }
 
   // Create an ordered path representation (levels)
@@ -70,19 +77,23 @@ export default function LearningPath() {
 
   // Determine if a level is unlocked.
   // Rule: Core is unlocked if at least 1 Foundation is complete. Advanced is unlocked if at least 1 Core is complete.
+
+  // Determine if a level is unlocked.
+  // Rule: Core is unlocked if at least 1 Foundation is complete. Advanced is unlocked if at least 1 Core is complete.
   const isCourseComplete = (courseId) => {
-    const enr = enrollments.find(e => e.course.id === courseId)
+    const enr = safeEnrollments.find(e => e?.course?.id === courseId)
     return enr ? enr.is_completed : false
   }
   
   const getCourseProgress = (courseId) => {
-    const enr = enrollments.find(e => e.course.id === courseId)
+    const enr = safeEnrollments.find(e => e?.course?.id === courseId)
     return enr ? enr.progress : 0
   }
 
   const isLevelComplete = (levelCourses) => {
-    if (!levelCourses.length) return true; // If no courses at this level, auto complete
-    return levelCourses.some(c => isCourseComplete(c.id))
+    const levelArray = Array.isArray(levelCourses) ? levelCourses : []
+    if (!levelArray.length) return true; 
+    return levelArray.some(c => isCourseComplete(c.id))
   }
 
   let unlockedLevels = { 'level-1': true, 'level-2': false, 'level-3': false }

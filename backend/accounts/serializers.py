@@ -10,14 +10,37 @@ class UserSerializer(serializers.ModelSerializer):
     """Serializer for User model."""
 
     full_name = serializers.ReadOnlyField()
+    profile_completed = serializers.ReadOnlyField()
+    avatar_url = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = [
             'id', 'email', 'username', 'first_name', 'last_name',
-            'full_name', 'role', 'phone', 'avatar', 'created_at', 'updated_at'
+            'full_name', 'role', 'is_active', 'phone', 'date_of_birth', 'sex',
+            'avatar', 'avatar_url', 'created_at', 'updated_at', 'date_joined',
+            'profile_completed',
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'date_joined', 'profile_completed']
+
+    def get_avatar_url(self, obj):
+        if obj.avatar and hasattr(obj.avatar, 'url'):
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.avatar.url)
+            return obj.avatar.url
+        return None
+
+
+class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for users updating their own profile (supports file upload)."""
+
+    class Meta:
+        model = User
+        fields = [
+            'first_name', 'last_name', 'phone', 'date_of_birth',
+            'sex', 'avatar',
+        ]
 
 
 class UserCreateSerializer(serializers.ModelSerializer):

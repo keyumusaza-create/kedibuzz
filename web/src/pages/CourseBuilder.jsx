@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import Layout from '../components/Layout'
 import api from '../services/api'
@@ -150,7 +150,9 @@ function Step1Info({ course, setCourse, onNext }) {
     title: course?.title || '',
     description: course?.description || '',
     category: course?.category || '',
-    difficulty: course?.difficulty || 'beginner'
+    difficulty: course?.difficulty || 'beginner',
+    start_date: course?.start_date ? course.start_date.slice(0, 16) : '',
+    end_date: course?.end_date ? course.end_date.slice(0, 16) : ''
   })
   const [categories, setCategories] = useState([])
   const [saving, setSaving] = useState(false)
@@ -162,13 +164,14 @@ function Step1Info({ course, setCourse, onNext }) {
   const submit = async (e) => {
     e.preventDefault()
     setSaving(true)
+    const payload = { ...form, category: form.category || null }
     try {
       if (course) {
-        const r = await api.patch(`/courses/list/${course.id}/`, form)
+        const r = await api.patch(`/courses/list/${course.id}/`, payload)
         setCourse(r.data)
         onNext()
       } else {
-        const r = await api.post('/courses/list/', form)
+        const r = await api.post('/courses/list/', payload)
         setCourse(r.data)
         navigate(`/instructor/courses/${r.data.id}/builder`, { replace: true })
         onNext()
@@ -213,6 +216,17 @@ function Step1Info({ course, setCourse, onNext }) {
         </div>
       </div>
 
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <div>
+          <label style={labelStyle}>Enrollment Opens (Start Date)</label>
+          <input type="datetime-local" style={inputStyle} value={form.start_date} onChange={e => setForm({...form, start_date: e.target.value})} />
+        </div>
+        <div>
+          <label style={labelStyle}>Enrollment Closes (End Date)</label>
+          <input type="datetime-local" style={inputStyle} value={form.end_date} onChange={e => setForm({...form, end_date: e.target.value})} />
+        </div>
+      </div>
+
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
         <button type="submit" disabled={saving} style={btn(true)}>
           {saving ? 'Saving...' : 'Save & Continue →'}
@@ -228,6 +242,8 @@ function Step2Structure({ course, onNext }) {
   const [lessons, setLessons] = useState([])
   const [loading, setLoading] = useState(true)
   const [newModTitle, setNewModTitle] = useState('')
+  const [addingLessonTo, setAddingLessonTo] = useState(null)
+  const [newLessonTitle, setNewLessonTitle] = useState('')
 
   const load = () => {
     setLoading(true)
@@ -251,10 +267,11 @@ function Step2Structure({ course, onNext }) {
   }
 
   const addLesson = async (modId) => {
-    const title = window.prompt("Lesson Title:")
-    if (!title) return
+    if (!newLessonTitle.trim()) return
     const modLessons = lessons.filter(l => l.module === modId)
-    await api.post('/courses/lessons/', { course: course.id, module: modId, title, order: modLessons.length + 1, content: 'Default content' })
+    await api.post('/courses/lessons/', { course: course.id, module: modId, title: newLessonTitle, order: modLessons.length + 1, content: 'Default lesson content. Start editing in the next step.' })
+    setNewLessonTitle('')
+    setAddingLessonTo(null)
     load()
   }
 
@@ -289,9 +306,17 @@ function Step2Structure({ course, onNext }) {
                     <span style={{ fontWeight: 600, color: '#334155' }}>{l.title}</span>
                   </div>
                 ))}
-                <button onClick={() => addLesson(m.id)} style={{ ...btn(false), marginTop: '0.5rem', alignSelf: 'start', padding: '0.4rem 0.8rem', fontSize: '0.8rem', color: '#2563eb', borderColor: '#bfdbfe', background: '#eff6ff' }}>
-                  + Add Lesson
-                </button>
+                {addingLessonTo === m.id ? (
+                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                    <input autoFocus style={{...inputStyle, marginTop: 0, padding: '0.6rem 0.8rem', fontSize: '0.85rem'}} value={newLessonTitle} onChange={e => setNewLessonTitle(e.target.value)} placeholder="Lesson Title..." onKeyDown={e => e.key === 'Enter' && addLesson(m.id)} />
+                    <button onClick={() => addLesson(m.id)} style={{...btn(true), padding: '0.6rem 1rem', fontSize: '0.85rem'}}>Add</button>
+                    <button onClick={() => setAddingLessonTo(null)} style={{...btn(false), padding: '0.6rem 1rem', fontSize: '0.85rem'}}>Cancel</button>
+                  </div>
+                ) : (
+                  <button onClick={() => setAddingLessonTo(m.id)} style={{ ...btn(false), marginTop: '0.5rem', alignSelf: 'start', padding: '0.5rem 0.9rem', fontSize: '0.85rem', color: '#2563eb', borderColor: '#bfdbfe', background: '#eff6ff' }}>
+                    + Add Lesson
+                  </button>
+                )}
               </div>
             </div>
           )
@@ -311,6 +336,16 @@ function Step2Structure({ course, onNext }) {
 }
 
 // ─── STEP 3: Lesson Content ─────────────────────────────────────────────────
+function getEmbedUrl(url) {
+  if (!url) return null
+  if (url.includes('youtube.com/embed/')) return url
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/
+  const match = url.match(regExp)
+  return (match && match[2].length === 11) 
+    ? `https://www.youtube.com/embed/${match[2]}`
+    : url
+}
+
 function Step3Content({ course, onNext }) {
   const [lessons, setLessons] = useState([])
   const [modules, setModules] = useState([])
@@ -320,6 +355,8 @@ function Step3Content({ course, onNext }) {
   const [content, setContent] = useState('')
   const [videoUrl, setVideoUrl] = useState('')
   const [isPreview, setIsPreview] = useState(false)
+  const [requireVideo, setRequireVideo] = useState(false)
+  const [requireResources, setRequireResources] = useState(false)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -337,12 +374,21 @@ function Step3Content({ course, onNext }) {
     setContent(l.content || '')
     setVideoUrl(l.video_url || '')
     setIsPreview(l.is_preview || false)
+    setRequireVideo(l.require_video || false)
+    setRequireResources(l.require_resources || false)
   }
 
   const saveLesson = async () => {
     setSaving(true)
-    await api.patch(`/courses/lessons/${selected.id}/`, { content, video_url: videoUrl, is_preview: isPreview })
-    setLessons(ls => ls.map(l => l.id === selected.id ? { ...l, content, video_url: videoUrl, is_preview: isPreview } : l))
+    const data = { 
+      content, 
+      video_url: videoUrl, 
+      is_preview: isPreview,
+      require_video: requireVideo,
+      require_resources: requireResources
+    }
+    await api.patch(`/courses/lessons/${selected.id}/`, data)
+    setLessons(ls => ls.map(l => l.id === selected.id ? { ...l, ...data } : l))
     setSaving(false)
     window.alert("Saved")
   }
@@ -389,24 +435,49 @@ function Step3Content({ course, onNext }) {
               <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>{selected.title}</h3>
               
               <div>
-                <label style={labelStyle}>Video URL (Embed)</label>
-                <input style={inputStyle} value={videoUrl} onChange={e => setVideoUrl(e.target.value)} placeholder="https://www.youtube.com/embed/..." />
+                <label style={labelStyle}>Video URL (Auto-converts from YouTube watch links)</label>
+                <input style={inputStyle} value={videoUrl} onChange={e => setVideoUrl(e.target.value)} placeholder="https://www.youtube.com/watch?v=..." />
               </div>
+
+              {videoUrl && (
+                <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: '0.75rem', background: '#f1f5f9' }}>
+                  <iframe 
+                    src={getEmbedUrl(videoUrl)} 
+                    title="Preview" 
+                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none' }}
+                  />
+                </div>
+              )}
 
               <div>
                 <label style={labelStyle}>Lesson Content (Markdown)</label>
                 <textarea style={{...inputStyle, height: '200px', fontFamily: 'monospace', resize: 'vertical'}} value={content} onChange={e => setContent(e.target.value)} placeholder="# Welcome to the lesson...\n\nWrite your content here." />
               </div>
 
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 700, color: '#334155' }}>
-                <input type="checkbox" checked={isPreview} onChange={e => setIsPreview(e.target.checked)} />
-                Make this lesson a free preview
-              </label>
+              <div style={{ display: 'grid', gap: '0.75rem', padding: '1rem', background: '#f8fbff', borderRadius: '0.75rem', border: '1px solid #e2e8f0' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', cursor: 'pointer', fontWeight: 700, color: '#334155', fontSize: '0.9rem' }}>
+                  <input type="checkbox" checked={isPreview} onChange={e => setIsPreview(e.target.checked)} />
+                  Free Preview (Locked users can watch)
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', cursor: 'pointer', fontWeight: 700, color: '#334155', fontSize: '0.9rem' }}>
+                  <input type="checkbox" checked={requireVideo} onChange={e => setRequireVideo(e.target.checked)} />
+                  Require Students to Watch Video
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', cursor: 'pointer', fontWeight: 700, color: '#334155', fontSize: '0.9rem' }}>
+                  <input type="checkbox" checked={requireResources} onChange={e => setRequireResources(e.target.checked)} />
+                  Require Students to Review Resources
+                </label>
+              </div>
 
               <div>
                 <button onClick={saveLesson} disabled={saving} style={{...btn(false), background: '#eff6ff', color: '#2563eb', borderColor: '#bfdbfe'}}>
                   {saving ? 'Saving...' : 'Save Lesson'}
                 </button>
+              </div>
+
+              {/* ─── Quiz Management per Lesson ─── */}
+              <div style={{ marginTop: '1rem' }}>
+                <LessonQuizManager lessonId={selected.id} lessonTitle={selected.title} />
               </div>
             </div>
           )}
@@ -416,6 +487,163 @@ function Step3Content({ course, onNext }) {
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem', borderTop: '1px solid #f1f5f9', paddingTop: '1.5rem' }}>
         <button onClick={onNext} style={btn(true)}>Save & Continue →</button>
       </div>
+    </div>
+  )
+}
+
+// ─── Inline Quiz Manager for CourseBuilder ───────────────────────────────────
+function LessonQuizManager({ lessonId, lessonTitle }) {
+  const [questions, setQuestions] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [form, setForm] = useState({
+    question: '', option_a: '', option_b: '', option_c: '', option_d: '',
+    correct_answer: 'A', explanation: '', order: 1,
+  })
+  const [saving, setSaving] = useState(false)
+
+  const loadQ = useCallback(() => {
+    setLoading(true)
+    api.get(`/courses/quiz-questions/?lesson_id=${lessonId}`)
+      .then(r => setQuestions(r.data.results || r.data || []))
+      .finally(() => setLoading(false))
+  }, [lessonId])
+
+  useEffect(() => { loadQ() }, [loadQ])
+
+  const setF = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  const addQ = async (e) => {
+    e.preventDefault()
+    setSaving(true)
+    try {
+      await api.post('/courses/quiz-questions/', { ...form, lesson: lessonId })
+      setShowForm(false)
+      setForm({ question: '', option_a: '', option_b: '', option_c: '', option_d: '', correct_answer: 'A', explanation: '', order: questions.length + 2 })
+      loadQ()
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const deleteQ = async (id) => {
+    if (!window.confirm('Delete this quiz question?')) return
+    await api.delete(`/courses/quiz-questions/${id}/`)
+    setQuestions(qs => qs.filter(q => q.id !== id))
+  }
+
+  const inputQ = {
+    width: '100%',
+    padding: '0.55rem 0.75rem',
+    borderRadius: '0.6rem',
+    border: '1.5px solid #e2e8f0',
+    fontSize: '0.85rem',
+    outline: 'none',
+    boxSizing: 'border-box',
+  }
+
+  return (
+    <div style={{
+      padding: '1rem', borderRadius: '1rem', background: '#f5f3ff',
+      border: '2px solid #ddd6fe',
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+        <div>
+          <p style={{ textTransform: 'uppercase', letterSpacing: '0.14em', fontSize: '0.7rem', fontWeight: 800, color: '#7c3aed', marginBottom: '0.2rem' }}>Quiz Questions</p>
+          <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 900, color: '#6d28d9' }}>
+            🧠 {questions.length} question{questions.length !== 1 ? 's' : ''}
+          </h4>
+        </div>
+        <button onClick={() => setShowForm(s => !s)} style={{
+          padding: '0.4rem 0.9rem', borderRadius: '0.6rem', border: 'none',
+          background: '#7c3aed', color: '#fff', fontWeight: 800, fontSize: '0.78rem',
+          cursor: 'pointer',
+        }}>
+          {showForm ? 'Cancel' : '+ Add'}
+        </button>
+      </div>
+
+      {showForm && (
+        <form onSubmit={addQ} style={{
+          display: 'grid', gap: '0.6rem', marginBottom: '0.75rem',
+          padding: '0.75rem', background: '#fff', borderRadius: '0.75rem',
+        }}>
+          <div>
+            <label style={{ display: 'block', fontWeight: 700, color: '#0f172a', marginBottom: '0.25rem', fontSize: '0.78rem' }}>Question *</label>
+            <textarea style={{ ...inputQ, height: 55, resize: 'vertical' }}
+              value={form.question} onChange={e => setF('question', e.target.value)}
+              placeholder="e.g. What is React?" required />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+            {['option_a', 'option_b', 'option_c', 'option_d'].map((opt, i) => (
+              <div key={opt}>
+                <label style={{ display: 'block', fontWeight: 700, color: '#0f172a', marginBottom: '0.2rem', fontSize: '0.72rem' }}>
+                  {['A', 'B', 'C', 'D'][i]} {i < 2 ? '*' : ''}
+                </label>
+                <input style={inputQ} value={form[opt]} onChange={e => setF(opt, e.target.value)}
+                  placeholder={`Option ${['A', 'B', 'C', 'D'][i]}`} required={i < 2} />
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+            <div>
+              <label style={{ display: 'block', fontWeight: 700, color: '#0f172a', marginBottom: '0.2rem', fontSize: '0.72rem' }}>Correct *</label>
+              <select style={inputQ} value={form.correct_answer} onChange={e => setF('correct_answer', e.target.value)}>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+              </select>
+            </div>
+            <div>
+              <label style={{ display: 'block', fontWeight: 700, color: '#0f172a', marginBottom: '0.2rem', fontSize: '0.72rem' }}>Order</label>
+              <input type="number" style={inputQ} value={form.order} onChange={e => setF('order', Number(e.target.value))} min={1} />
+            </div>
+          </div>
+          <div>
+            <label style={{ display: 'block', fontWeight: 700, color: '#0f172a', marginBottom: '0.2rem', fontSize: '0.72rem' }}>Explanation</label>
+            <textarea style={{ ...inputQ, height: 45, resize: 'vertical' }}
+              value={form.explanation} onChange={e => setF('explanation', e.target.value)}
+              placeholder="Explain the correct answer..." />
+          </div>
+          <button type="submit" disabled={saving} style={{
+            padding: '0.45rem 0.9rem', borderRadius: '0.6rem', border: 'none',
+            background: '#7c3aed', color: '#fff', fontWeight: 800, fontSize: '0.78rem',
+            cursor: saving ? 'not-allowed' : 'pointer', justifySelf: 'end',
+          }}>
+            {saving ? 'Saving...' : 'Save Question'}
+          </button>
+        </form>
+      )}
+
+      {loading ? (
+        <div style={{ color: '#94a3b8', fontSize: '0.82rem' }}>Loading...</div>
+      ) : questions.length === 0 ? (
+        <div style={{ color: '#94a3b8', fontSize: '0.82rem', fontStyle: 'italic' }}>No questions yet.</div>
+      ) : (
+        <div style={{ display: 'grid', gap: '0.4rem' }}>
+          {questions.map((q, i) => (
+            <div key={q.id} style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '0.5rem 0.7rem', background: '#fff', borderRadius: '0.5rem',
+              fontSize: '0.82rem',
+            }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 700, color: '#0f172a' }}>
+                  {i + 1}. {q.question.substring(0, 70)}{q.question.length > 70 ? '...' : ''}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>✓ {q.correct_answer}</div>
+              </div>
+              <button onClick={() => deleteQ(q.id)} style={{
+                padding: '0.25rem 0.6rem', borderRadius: '0.4rem',
+                border: '1.5px solid #fca5a5', background: '#fff',
+                color: '#dc2626', fontWeight: 700, fontSize: '0.72rem',
+                cursor: 'pointer',
+              }}>Delete</button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

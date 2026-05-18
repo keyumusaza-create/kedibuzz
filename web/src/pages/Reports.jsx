@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react'
 import Layout from '../components/Layout'
+import api from '../services/api'
 
 const cardStyle = {
   background: '#fff',
@@ -21,6 +23,31 @@ const ReportItem = ({ label, value, percentage, color }) => (
 )
 
 export default function Reports() {
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    api.get('/dashboard/admin/reports/')
+      .then(res => {
+        setData(res.data)
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error('Error fetching reports:', err)
+        setError(err.response?.data?.error || err.message)
+        setLoading(false)
+      })
+  }, [])
+
+  if (loading) return <Layout><div style={{ padding: '2rem', textAlign: 'center', fontWeight: 'bold' }}>Loading reports data...</div></Layout>
+  if (error) return <Layout><div style={{ padding: '2rem', textAlign: 'center', color: 'red' }}>Error: {error}</div></Layout>
+
+  // Fallback to empty arrays if data fields aren't present yet from the API
+  const enrollmentData = data?.enrollmentByCategory || []
+  const performanceData = data?.instructorPerformance || []
+  const courseRates = data?.courseCompletionRates || []
+
   return (
     <Layout>
       <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
@@ -32,18 +59,16 @@ export default function Reports() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
           <div style={cardStyle}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '1.5rem', color: '#0f172a' }}>Enrollment by Category</h3>
-            <ReportItem label="Full Stack Development" value="452" percentage={85} color="#2563eb" />
-            <ReportItem label="AI & Machine Learning" value="320" percentage={60} color="#8b5cf6" />
-            <ReportItem label="UI/UX Design" value="185" percentage={35} color="#ec4899" />
-            <ReportItem label="Mobile App Dev" value="150" percentage={28} color="#f59e0b" />
+            {enrollmentData.length > 0 ? enrollmentData.map((item, i) => (
+              <ReportItem key={i} label={item.label} value={item.value} percentage={item.percentage} color={item.color || '#2563eb'} />
+            )) : <p style={{ color: '#64748b' }}>No enrollment data available.</p>}
           </div>
 
           <div style={cardStyle}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '1.5rem', color: '#0f172a' }}>Instructor Performance</h3>
-            <ReportItem label="Dr. Sarah Wilson" value="4.9/5" percentage={98} color="#10b981" />
-            <ReportItem label="Prof. James Bond" value="4.7/5" percentage={94} color="#10b981" />
-            <ReportItem label="Elena Rodriguez" value="4.5/5" percentage={90} color="#10b981" />
-            <ReportItem label="Michael Chen" value="4.2/5" percentage={84} color="#2563eb" />
+            {performanceData.length > 0 ? performanceData.map((item, i) => (
+              <ReportItem key={i} label={item.label} value={item.value} percentage={item.percentage} color={item.color || '#10b981'} />
+            )) : <p style={{ color: '#64748b' }}>No instructor data available.</p>}
           </div>
         </div>
 
@@ -65,12 +90,7 @@ export default function Reports() {
               </tr>
             </thead>
             <tbody>
-              {[
-                { name: 'Advanced React Patterns', learners: 120, completed: 45, progress: '65%' },
-                { name: 'Python for Data Science', learners: 240, completed: 88, progress: '58%' },
-                { name: 'Modern UI Engineering', learners: 95, completed: 40, progress: '72%' },
-                { name: 'Node.js Microservices', learners: 150, completed: 30, progress: '42%' }
-              ].map((c, i) => (
+              {courseRates.length > 0 ? courseRates.map((c, i) => (
                 <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
                   <td style={{ padding: '1rem', fontWeight: 700 }}>{c.name}</td>
                   <td style={{ padding: '1rem' }}>{c.learners}</td>
@@ -79,7 +99,11 @@ export default function Reports() {
                     <span style={{ background: '#eff6ff', color: '#2563eb', padding: '0.25rem 0.6rem', borderRadius: '1rem', fontWeight: 700, fontSize: '0.8rem' }}>{c.progress}</span>
                   </td>
                 </tr>
-              ))}
+              )) : (
+                <tr>
+                  <td colSpan="4" style={{ padding: '1rem', textAlign: 'center', color: '#64748b' }}>No course data available.</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

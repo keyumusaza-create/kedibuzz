@@ -12,11 +12,20 @@ class User(AbstractUser):
         ('learner', 'Learner'),
     ]
 
+    SEX_CHOICES = [
+        ('male', 'Male'),
+        ('female', 'Female'),
+        ('other', 'Other'),
+        ('', 'Prefer not to say'),
+    ]
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=150, unique=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='learner')
     phone = models.CharField(max_length=20, blank=True, null=True)
+    date_of_birth = models.DateField(blank=True, null=True)
+    sex = models.CharField(max_length=10, choices=SEX_CHOICES, blank=True, default='')
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -54,6 +63,11 @@ class User(AbstractUser):
     def full_name(self):
         return self.get_full_name()
 
+    @property
+    def profile_completed(self):
+        """Check if user has filled required profile fields."""
+        return bool(self.first_name and self.last_name and self.date_of_birth)
+
 
 class InstructorProfile(models.Model):
     """Instructor profile with additional information."""
@@ -79,7 +93,6 @@ class LearnerProfile(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='learner_profile')
     learner_code = models.CharField(max_length=50, unique=True, blank=True, null=True, db_column='student_id')
-    date_of_birth = models.DateField(blank=True, null=True)
     guardian_name = models.CharField(max_length=200, blank=True, null=True, db_column='parent_name')
     guardian_phone = models.CharField(max_length=20, blank=True, null=True, db_column='parent_phone')
     address = models.TextField(blank=True, null=True)

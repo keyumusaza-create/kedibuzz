@@ -51,6 +51,15 @@ export default function ManageInstructors() {
     }
   }
 
+  const toggleStatus = async (instr) => {
+    try {
+      await api.patch(`/accounts/users/${instr.id}/`, { is_active: !instr.is_active })
+      fetchInstructors()
+    } catch {
+      setError('Failed to update instructor status.')
+    }
+  }
+
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
@@ -174,16 +183,27 @@ export default function ManageInstructors() {
                 <tr>
                   <th style={{ textAlign: 'left', padding: '1.25rem 1.5rem', fontSize: '0.8rem', textTransform: 'uppercase', color: '#64748b', letterSpacing: '0.05em' }}>Name</th>
                   <th style={{ textAlign: 'left', padding: '1.25rem 1.5rem', fontSize: '0.8rem', textTransform: 'uppercase', color: '#64748b', letterSpacing: '0.05em' }}>Email</th>
+                  <th style={{ textAlign: 'left', padding: '1.25rem 1.5rem', fontSize: '0.8rem', textTransform: 'uppercase', color: '#64748b', letterSpacing: '0.05em' }}>Status</th>
                   <th style={{ textAlign: 'left', padding: '1.25rem 1.5rem', fontSize: '0.8rem', textTransform: 'uppercase', color: '#64748b', letterSpacing: '0.05em' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {instructors.map((instr) => (
                   <tr key={instr.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '1.25rem 1.5rem', fontWeight: 700, color: '#0f172a' }}>{instr.full_name}</td>
+                    <td style={{ padding: '1.25rem 1.5rem', fontWeight: 700, color: '#0f172a' }}>{instr.first_name} {instr.last_name}</td>
                     <td style={{ padding: '1.25rem 1.5rem', color: '#64748b' }}>{instr.email}</td>
                     <td style={{ padding: '1.25rem 1.5rem' }}>
-                      <button style={{ color: '#ef4444', background: 'none', border: 'none', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}>Suspend</button>
+                      <span style={{
+                        padding: '0.25rem 0.6rem', borderRadius: '999px', fontSize: '0.72rem', fontWeight: 800,
+                        background: instr.is_active ? '#f0fdf4' : '#fef2f2',
+                        color: instr.is_active ? '#16a34a' : '#dc2626'
+                      }}>{instr.is_active ? 'Active' : 'Suspended'}</span>
+                    </td>
+                    <td style={{ padding: '1.25rem 1.5rem' }}>
+                      <button
+                        onClick={() => toggleStatus(instr)}
+                        style={{ color: instr.is_active ? '#ef4444' : '#16a34a', background: 'none', border: 'none', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
+                      >{instr.is_active ? 'Suspend' : 'Activate'}</button>
                     </td>
                   </tr>
                 ))}

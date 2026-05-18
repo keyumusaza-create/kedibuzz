@@ -71,6 +71,10 @@ class LessonSerializer(serializers.ModelSerializer):
         if obj.is_locked or (obj.module and obj.module.is_locked):
             return False
 
+        # Fixed release date check (Module level)
+        if obj.module and obj.module.release_date and timezone.now() < obj.module.release_date:
+            return False
+
         if not obj.module:
             return True
             
@@ -97,7 +101,13 @@ class LessonSerializer(serializers.ModelSerializer):
         enrollment = Enrollment.objects.filter(learner=user, course=obj.course).first()
         if not enrollment:
             return None
-        return enrollment.enrolled_at + timedelta(days=obj.module.drip_delay_days)
+            
+        drip_release = enrollment.enrolled_at + timedelta(days=obj.module.drip_delay_days)
+        
+        # Available at is the LATER of release_date and drip_release
+        if obj.module.release_date:
+            return max(obj.module.release_date, drip_release)
+        return drip_release
 
     def _progress_threshold(self, obj):
         total_lessons = max(obj.course.lessons.count(), 1)
@@ -136,7 +146,7 @@ class ModuleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Module
-        fields = ['id', 'course', 'title', 'description', 'order', 'drip_delay_days', 'is_locked', 'is_available', 'available_at', 'lessons', 'created_at']
+        fields = ['id', 'course', 'title', 'description', 'order', 'drip_delay_days', 'release_date', 'is_locked', 'is_available', 'available_at', 'lessons', 'created_at']
 
     def get_is_available(self, obj):
         request = self.context.get('request')
@@ -150,6 +160,10 @@ class ModuleSerializer(serializers.ModelSerializer):
             
         # Manual lock override
         if obj.is_locked:
+            return False
+            
+        # Fixed release date check
+        if obj.release_date and timezone.now() < obj.release_date:
             return False
             
         enrollment = Enrollment.objects.filter(learner=user, course=obj.course).first()
@@ -170,7 +184,10 @@ class ModuleSerializer(serializers.ModelSerializer):
         if not enrollment:
             return None
             
-        return enrollment.enrolled_at + timedelta(days=obj.drip_delay_days)
+        drip_release = enrollment.enrolled_at + timedelta(days=obj.drip_delay_days)
+        if obj.release_date:
+            return max(obj.release_date, drip_release)
+        return drip_release
 
 class CourseSerializer(serializers.ModelSerializer):
     instructor = UserSerializer(read_only=True)

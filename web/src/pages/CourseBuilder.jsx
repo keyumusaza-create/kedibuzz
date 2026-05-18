@@ -311,6 +311,10 @@ function Step2Structure({ course, onNext }) {
                   <button onClick={() => updateModule(m.id, { is_locked: !m.is_locked })} style={{ border: 'none', background: m.is_locked ? '#fee2e2' : '#f0fdf4', color: m.is_locked ? '#dc2626' : '#16a34a', padding: '0.35rem 0.6rem', borderRadius: '0.5rem', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer' }}>
                     {m.is_locked ? '🔒 Locked' : '🔓 Unlocked'}
                   </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#fff', padding: '0.25rem 0.5rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b' }}>Schedule:</span>
+                    <input type="datetime-local" style={{ border: 'none', fontSize: '0.75rem', fontWeight: 700, outline: 'none', color: '#1e293b' }} value={m.release_date ? m.release_date.substring(0, 16) : ''} onChange={e => updateModule(m.id, { release_date: e.target.value || null })} />
+                  </div>
                 </div>
                 <button onClick={() => deleteModule(m.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontWeight: 700 }}>Delete</button>
               </div>

@@ -59,6 +59,7 @@ class Module(models.Model):
     description = models.TextField(blank=True)
     order = models.PositiveIntegerField()
     drip_delay_days = models.PositiveIntegerField(default=0, help_text="Days after enrollment when this module becomes available")
+    release_date = models.DateTimeField(null=True, blank=True, help_text="Specific date and time when this module becomes available for everyone")
     is_locked = models.BooleanField(default=False, help_text="Manually lock this module for all learners")
     created_at = models.DateTimeField(auto_now_add=True)
 

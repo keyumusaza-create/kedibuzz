@@ -292,13 +292,20 @@ export default function LessonViewer() {
           maxWidth: 600, margin: '4rem auto' 
         }}>
           <div style={{ fontSize: '4rem', marginBottom: '1.5rem' }}>🔒</div>
-          <h1 style={{ fontWeight: 900, color: '#0f172a', marginBottom: '1rem' }}>This lesson is still locked</h1>
+          <h1 style={{ fontWeight: 900, color: '#0f172a', marginBottom: '1rem' }}>
+            {lesson.module_available_at ? 'This lesson is still locked' : 'Content temporarily unavailable'}
+          </h1>
           <p style={{ color: '#64748b', lineHeight: 1.6, marginBottom: '2rem' }}>
-            To ensure the best learning rhythm, this module will be released on:
-            <br />
-            <strong style={{ color: '#6366f1', fontSize: '1.2rem' }}>
-              {new Date(lesson.module_available_at).toLocaleDateString(undefined, { dateStyle: 'full' })}
-            </strong>
+            {lesson.module_available_at ? (
+              <>
+                To ensure the best learning rhythm, this module will be released on:<br />
+                <strong style={{ color: '#6366f1', fontSize: '1.2rem' }}>
+                  {new Date(lesson.module_available_at).toLocaleDateString(undefined, { dateStyle: 'full' })}
+                </strong>
+              </>
+            ) : (
+              "This content has been manually locked by the instructor. Please check back later or contact support if you believe this is an error."
+            )}
           </p>
           <Link to={`/courses/${lesson.course}`} style={{ 
             display: 'inline-block', padding: '0.9rem 2rem', background: '#0f172a', 

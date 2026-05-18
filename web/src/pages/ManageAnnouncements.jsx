@@ -169,7 +169,9 @@ export default function ManageAnnouncements() {
                     <span style={{ fontSize: '0.7rem', background: '#fef3c7', color: '#92400e', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 700, textTransform: 'uppercase' }}>{ann.is_global ? 'Global' : 'Course'}</span>
                   </div>
                   <p style={{ color: '#475569', lineHeight: 1.6, marginBottom: '1rem', fontSize: '0.95rem' }}>{ann.content}</p>
-                  <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Posted on {ann.date} by {ann.author}</div>
+                  <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                    Posted on {new Date(ann.created_at).toLocaleDateString()} at {new Date(ann.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} by {ann.author_name}
+                  </div>
                 </div>
                 <button 
                   onClick={() => handleDelete(ann.id)}

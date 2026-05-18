@@ -275,6 +275,11 @@ function Step2Structure({ course, onNext }) {
     load()
   }
 
+  const updateModule = async (id, data) => {
+    await api.patch(`/courses/modules/${id}/`, data)
+    setModules(ms => ms.map(m => m.id === id ? { ...m, ...data } : m))
+  }
+
   const deleteModule = async (id) => {
     if (!window.confirm("Delete module?")) return
     await api.delete(`/courses/modules/${id}/`)
@@ -295,8 +300,18 @@ function Step2Structure({ course, onNext }) {
           const modLessons = lessons.filter(l => l.module === m.id)
           return (
             <div key={m.id} style={{ border: '1px solid #e2e8f0', borderRadius: '1rem', overflow: 'hidden' }}>
-              <div style={{ background: '#f8fafc', padding: '1rem 1.25rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <strong style={{ color: '#0f172a', fontSize: '1.05rem' }}>Module {i + 1}: {m.title}</strong>
+              <div style={{ background: '#f8fafc', padding: '0.85rem 1.25rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <strong style={{ color: '#0f172a', fontSize: '1.05rem' }}>Module {i + 1}: {m.title}</strong>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#fff', padding: '0.25rem 0.5rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b' }}>Release:</span>
+                    <input type="number" min="0" style={{ border: 'none', width: '40px', fontSize: '0.85rem', fontWeight: 800, textAlign: 'center', outline: 'none' }} value={m.drip_delay_days} onChange={e => updateModule(m.id, { drip_delay_days: parseInt(e.target.value) || 0 })} />
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8' }}>days</span>
+                  </div>
+                  <button onClick={() => updateModule(m.id, { is_locked: !m.is_locked })} style={{ border: 'none', background: m.is_locked ? '#fee2e2' : '#f0fdf4', color: m.is_locked ? '#dc2626' : '#16a34a', padding: '0.35rem 0.6rem', borderRadius: '0.5rem', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer' }}>
+                    {m.is_locked ? '🔒 Locked' : '🔓 Unlocked'}
+                  </button>
+                </div>
                 <button onClick={() => deleteModule(m.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontWeight: 700 }}>Delete</button>
               </div>
               <div style={{ padding: '1rem 1.25rem', display: 'grid', gap: '0.5rem' }}>
@@ -357,6 +372,7 @@ function Step3Content({ course, onNext }) {
   const [isPreview, setIsPreview] = useState(false)
   const [requireVideo, setRequireVideo] = useState(false)
   const [requireResources, setRequireResources] = useState(false)
+  const [isLocked, setIsLocked] = useState(false)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -376,6 +392,7 @@ function Step3Content({ course, onNext }) {
     setIsPreview(l.is_preview || false)
     setRequireVideo(l.require_video || false)
     setRequireResources(l.require_resources || false)
+    setIsLocked(l.is_locked || false)
   }
 
   const saveLesson = async () => {
@@ -385,7 +402,8 @@ function Step3Content({ course, onNext }) {
       video_url: videoUrl, 
       is_preview: isPreview,
       require_video: requireVideo,
-      require_resources: requireResources
+      require_resources: requireResources,
+      is_locked: isLocked
     }
     await api.patch(`/courses/lessons/${selected.id}/`, data)
     setLessons(ls => ls.map(l => l.id === selected.id ? { ...l, ...data } : l))
@@ -466,6 +484,10 @@ function Step3Content({ course, onNext }) {
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', cursor: 'pointer', fontWeight: 700, color: '#334155', fontSize: '0.9rem' }}>
                   <input type="checkbox" checked={requireResources} onChange={e => setRequireResources(e.target.checked)} />
                   Require Students to Review Resources
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', cursor: 'pointer', fontWeight: 800, color: isLocked ? '#dc2626' : '#16a34a', fontSize: '0.9rem', padding: '0.5rem', background: isLocked ? '#fee2e2' : '#f0fdf4', borderRadius: '0.5rem' }}>
+                  <input type="checkbox" checked={isLocked} onChange={e => setIsLocked(e.target.checked)} />
+                  {isLocked ? '🔒 Lesson Manually Locked' : '🔓 Lesson Unlocked'}
                 </label>
               </div>
 

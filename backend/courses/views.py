@@ -264,14 +264,24 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
         return [IsAdminOrInstructorRole()]
 
     def get_queryset(self):
-        course_id = self.request.query_params.get('course_id')
-        queryset = self.queryset
-        if self.request.user.role in {'admin', 'instructor'}:
-            queryset = queryset.all()
-        else:
+        # Optimized query with select_related
+        queryset = Announcement.objects.select_related('author', 'course').all()
+        
+        user = self.request.user
+        if not user.is_authenticated:
+            return Announcement.objects.none()
+
+        if user.role not in {'admin', 'instructor'}:
             queryset = queryset.filter(is_global=True)
+            
+        course_id = self.request.query_params.get('course_id')
         if course_id:
-            return queryset.filter(course_id=course_id).order_by('-created_at')
+            try:
+                queryset = queryset.filter(course_id=course_id)
+            except Exception:
+                # Handle potentially malformed UUID or other filtering issues
+                pass
+                
         return queryset.order_by('-created_at')
 
     def perform_create(self, serializer):

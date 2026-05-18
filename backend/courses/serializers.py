@@ -52,24 +52,33 @@ class LessonSerializer(serializers.ModelSerializer):
         model = Lesson
         fields = [
             'id', 'course', 'module', 'course_title', 'title', 'slug', 'content', 'video_url',
-            'order', 'is_preview', 'require_video', 'require_resources', 'created_at', 'updated_at',
+            'order', 'is_preview', 'require_video', 'require_resources', 'is_locked', 'created_at', 'updated_at',
             'previous_lesson_id', 'next_lesson_id', 'resources', 'is_completed',
             'module_is_available', 'module_available_at',
         ]
 
     def get_module_is_available(self, obj):
-        if not obj.module:
-            return True
-        # Reuse ModuleSerializer logic ideally, but for simplicity here:
         request = self.context.get('request')
         user = getattr(request, 'user', None)
         if not user or not user.is_authenticated:
             return False
-        if user == obj.course.instructor:
+            
+        # Instructors and Admins see everything
+        if user == obj.course.instructor or user.role == 'admin':
             return True
+            
+        # Manual lock override (Lesson or Module)
+        if obj.is_locked or (obj.module and obj.module.is_locked):
+            return False
+
+        if not obj.module:
+            return True
+            
         enrollment = Enrollment.objects.filter(learner=user, course=obj.course).first()
         if not enrollment:
             return False
+        
+        # Drip logic
         release_date = enrollment.enrolled_at + timedelta(days=obj.module.drip_delay_days)
         return timezone.now() >= release_date
 
@@ -80,6 +89,11 @@ class LessonSerializer(serializers.ModelSerializer):
         user = getattr(request, 'user', None)
         if not user or not user.is_authenticated:
             return None
+            
+        # For instructors, it's already available
+        if user == obj.course.instructor or user.role == 'admin':
+            return None
+            
         enrollment = Enrollment.objects.filter(learner=user, course=obj.course).first()
         if not enrollment:
             return None
@@ -122,7 +136,7 @@ class ModuleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Module
-        fields = ['id', 'course', 'title', 'description', 'order', 'drip_delay_days', 'is_available', 'available_at', 'lessons', 'created_at']
+        fields = ['id', 'course', 'title', 'description', 'order', 'drip_delay_days', 'is_locked', 'is_available', 'available_at', 'lessons', 'created_at']
 
     def get_is_available(self, obj):
         request = self.context.get('request')
@@ -130,14 +144,19 @@ class ModuleSerializer(serializers.ModelSerializer):
         if not user or not user.is_authenticated:
             return False
         
-        # Instructors see everything in their own course
-        if user == obj.course.instructor:
+        # Instructors and Admins see everything
+        if user == obj.course.instructor or user.role == 'admin':
             return True
+            
+        # Manual lock override
+        if obj.is_locked:
+            return False
             
         enrollment = Enrollment.objects.filter(learner=user, course=obj.course).first()
         if not enrollment:
             return False
             
+        # Drip logic
         release_date = enrollment.enrolled_at + timedelta(days=obj.drip_delay_days)
         return timezone.now() >= release_date
 
@@ -329,6 +348,7 @@ class AnnouncementSerializer(serializers.ModelSerializer):
             'id', 'course', 'course_title', 'author', 'author_name',
             'title', 'content', 'is_global', 'created_at',
         ]
+        read_only_fields = ['author', 'created_at']
 
     def get_author_name(self, obj):
         return obj.author.get_full_name() if obj.author else None

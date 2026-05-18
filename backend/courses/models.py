@@ -59,6 +59,7 @@ class Module(models.Model):
     description = models.TextField(blank=True)
     order = models.PositiveIntegerField()
     drip_delay_days = models.PositiveIntegerField(default=0, help_text="Days after enrollment when this module becomes available")
+    is_locked = models.BooleanField(default=False, help_text="Manually lock this module for all learners")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -82,6 +83,7 @@ class Lesson(models.Model):
     is_preview = models.BooleanField(default=False)
     require_video = models.BooleanField(default=False)
     require_resources = models.BooleanField(default=False)
+    is_locked = models.BooleanField(default=False, help_text="Manually lock this lesson for all learners")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

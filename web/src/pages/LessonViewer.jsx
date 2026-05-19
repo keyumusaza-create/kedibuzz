@@ -263,6 +263,12 @@ export default function LessonViewer() {
     if (!reviewedResources.includes(key)) {
       setReviewedResources(prev => [...prev, key])
     }
+    
+    if (resource.file_url) {
+      window.open(resource.file_url, '_blank')
+    } else if (resource.content) {
+      alert(resource.content) // Basic for now, could be a modal
+    }
   }
 
   const completeLesson = async () => {
@@ -526,10 +532,10 @@ export default function LessonViewer() {
                     }}
                   >
                     <div style={{ color: '#0f172a', fontWeight: 800, fontSize: '0.9rem', display: 'flex', justifyContent: 'space-between' }}>
-                      {resource.label}
+                      {resource.title || resource.label}
                       {reviewedResources.includes(resourceKey(resource)) && <span style={{ color: '#16a34a' }}>✓</span>}
                     </div>
-                    <div style={{ color: '#64748b', fontSize: '0.78rem', textTransform: 'uppercase' }}>{resource.type}</div>
+                    <div style={{ color: '#64748b', fontSize: '0.78rem', textTransform: 'uppercase' }}>{resource.resource_type || resource.type}</div>
                   </div>
                 ))}
               </div>

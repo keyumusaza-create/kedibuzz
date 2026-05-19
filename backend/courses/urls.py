@@ -4,7 +4,7 @@ from .views import (
     CategoryViewSet, CourseViewSet, ModuleViewSet, LessonViewSet, 
     EnrollmentViewSet, CertificateViewSet, AnnouncementViewSet,
     AssignmentViewSet, SubmissionViewSet,
-    QuizQuestionViewSet, QuizAttemptViewSet
+    QuizQuestionViewSet, QuizAttemptViewSet, LessonResourceViewSet
 )
 
 router = DefaultRouter()
@@ -19,6 +19,7 @@ router.register(r'assignments', AssignmentViewSet)
 router.register(r'submissions', SubmissionViewSet)
 router.register(r'quiz-questions', QuizQuestionViewSet, basename='quiz-question')
 router.register(r'quiz-attempts', QuizAttemptViewSet, basename='quiz-attempt')
+router.register(r'lesson-resources', LessonResourceViewSet, basename='lesson-resource')
 
 urlpatterns = [
     path('', include(router.urls)),

@@ -505,6 +505,10 @@ function Step3Content({ course, onNext }) {
               <div style={{ marginTop: '1rem' }}>
                 <LessonQuizManager lessonId={selected.id} lessonTitle={selected.title} />
               </div>
+
+              <div style={{ marginTop: '1rem' }}>
+                <LessonResourceManager lessonId={selected.id} />
+              </div>
             </div>
           )}
         </div>
@@ -763,6 +767,137 @@ function Step5Publish({ course, setCourse }) {
       <div style={{ marginTop: '2rem', display: 'inline-block', padding: '0.75rem 1.5rem', borderRadius: '1rem', background: course.is_published ? '#ecfdf5' : '#fff7ed', color: course.is_published ? '#059669' : '#ea580c', fontWeight: 800 }}>
         Status: {course.is_published ? 'Live (Available to learners)' : 'Draft (Hidden from catalog)'}
       </div>
+    </div>
+  )
+}
+
+// ─── Lesson Resource Manager for CourseBuilder ──────────────────────────────
+function LessonResourceManager({ lessonId }) {
+  const [resources, setResources] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [form, setForm] = useState({ title: '', resource_type: 'markdown', content: '', order: 0 })
+  const [file, setFile] = useState(null)
+  const [saving, setSaving] = useState(false)
+
+  const loadResources = useCallback(() => {
+    setLoading(true)
+    api.get(`/courses/lesson-resources/?lesson_id=${lessonId}`)
+      .then(r => setResources(r.data.results || r.data || []))
+      .finally(() => setLoading(false))
+  }, [lessonId])
+
+  useEffect(() => { loadResources() }, [loadResources])
+
+  const addResource = async (e) => {
+    e.preventDefault()
+    setSaving(true)
+    const formData = new FormData()
+    formData.append('lesson', lessonId)
+    formData.append('title', form.title)
+    formData.append('resource_type', form.resource_type)
+    formData.append('order', form.order)
+    if (form.resource_type === 'markdown') {
+      formData.append('content', form.content)
+    } else if (file) {
+      formData.append('file', file)
+    }
+
+    try {
+      await api.post('/courses/lesson-resources/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+      setShowForm(false)
+      setForm({ title: '', resource_type: 'markdown', content: '', order: resources.length + 1 })
+      setFile(null)
+      loadResources()
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const deleteResource = async (id) => {
+    if (!window.confirm('Delete this resource?')) return
+    await api.delete(`/courses/lesson-resources/${id}/`)
+    setResources(rs => rs.filter(r => r.id !== id))
+  }
+
+  const inputEx = {
+    width: '100%',
+    padding: '0.6rem 0.8rem',
+    borderRadius: '0.6rem',
+    border: '1.5px solid #e2e8f0',
+    fontSize: '0.85rem',
+    outline: 'none',
+    boxSizing: 'border-box',
+    marginBottom: '0.5rem'
+  }
+
+  return (
+    <div style={{ padding: '1rem', borderRadius: '1rem', background: '#f0f9ff', border: '2px solid #bae6fd' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+        <div>
+          <p style={{ textTransform: 'uppercase', letterSpacing: '0.14em', fontSize: '0.7rem', fontWeight: 800, color: '#0369a1', marginBottom: '0.2rem' }}>Lesson Resources</p>
+          <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 900, color: '#0c4a6e' }}>
+            📁 {resources.length} resource{resources.length !== 1 ? 's' : ''}
+          </h4>
+        </div>
+        <button onClick={() => setShowForm(s => !s)} style={{ padding: '0.4rem 0.9rem', borderRadius: '0.6rem', border: 'none', background: '#0284c7', color: '#fff', fontWeight: 800, fontSize: '0.78rem', cursor: 'pointer' }}>
+          {showForm ? 'Cancel' : '+ Add'}
+        </button>
+      </div>
+
+      {showForm && (
+        <form onSubmit={addResource} style={{ display: 'grid', gap: '0.5rem', marginBottom: '1rem', padding: '1rem', background: '#fff', borderRadius: '0.75rem' }}>
+          <div>
+            <label style={{ display: 'block', fontWeight: 700, fontSize: '0.75rem', color: '#334155', marginBottom: '0.25rem' }}>Title *</label>
+            <input style={inputEx} value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="e.g. Starter Labs" required />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontWeight: 700, fontSize: '0.75rem', color: '#334155', marginBottom: '0.25rem' }}>Type</label>
+            <select style={inputEx} value={form.resource_type} onChange={e => setForm({...form, resource_type: e.target.value})}>
+              <option value="markdown">Markdown Notes</option>
+              <option value="pdf">PDF Document</option>
+              <option value="zip">ZIP Archive</option>
+              <option value="other">Other File</option>
+            </select>
+          </div>
+          {form.resource_type === 'markdown' ? (
+            <div>
+              <label style={{ display: 'block', fontWeight: 700, fontSize: '0.75rem', color: '#334155', marginBottom: '0.25rem' }}>Content (Markdown)</label>
+              <textarea style={{...inputEx, height: '100px'}} value={form.content} onChange={e => setForm({...form, content: e.target.value})} placeholder="# Enter notes here..." />
+            </div>
+          ) : (
+            <div>
+              <label style={{ display: 'block', fontWeight: 700, fontSize: '0.75rem', color: '#334155', marginBottom: '0.25rem' }}>File</label>
+              <input type="file" style={inputEx} onChange={e => setFile(e.target.files[0])} />
+            </div>
+          )}
+          <button type="submit" disabled={saving} style={{ padding: '0.6rem', borderRadius: '0.6rem', border: 'none', background: '#0284c7', color: '#fff', fontWeight: 800, cursor: 'pointer', fontSize: '0.85rem' }}>
+            {saving ? 'Uploading...' : 'Save Resource'}
+          </button>
+        </form>
+      )}
+
+      {loading ? (
+        <div style={{ color: '#64748b', fontSize: '0.8rem' }}>Loading...</div>
+      ) : resources.length === 0 ? (
+        <div style={{ color: '#94a3b8', fontSize: '0.8rem', fontStyle: 'italic' }}>No resources added yet.</div>
+      ) : (
+        <div style={{ display: 'grid', gap: '0.4rem' }}>
+          {resources.map((r) => (
+            <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 0.8rem', background: '#fff', borderRadius: '0.5rem', fontSize: '0.82rem' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 700, color: '#0f172a' }}>{r.title}</div>
+                <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                  {r.resource_type.toUpperCase()} {r.file && '✓ File Attached'}
+                </div>
+              </div>
+              <button onClick={() => deleteResource(r.id)} style={{ padding: '0.25rem 0.5rem', borderRadius: '0.4rem', border: '1.5px solid #fda4af', background: '#fff', color: '#e11d48', fontWeight: 700, cursor: 'pointer', fontSize: '0.72rem' }}>Delete</button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

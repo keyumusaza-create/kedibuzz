@@ -4,14 +4,15 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from .models import (
-    Category, Course, Module, Lesson, Enrollment, Certificate, Announcement, Assignment, Submission, QuizQuestion, QuizAttempt
+    Category, Course, Module, Lesson, Enrollment, Certificate, Announcement, Assignment, Submission, QuizQuestion, QuizAttempt, LessonResource
 )
 from .bootstrap import ensure_learning_seed_data
 from .serializers import (
     CategorySerializer, CourseSerializer, CourseDetailSerializer, ModuleSerializer, LessonSerializer,
     EnrollmentSerializer, CertificateSerializer, AnnouncementSerializer,
     AssignmentSerializer, SubmissionSerializer,
-    QuizQuestionSerializer, QuizQuestionDetailSerializer, QuizAttemptSerializer, QuizAnswerSerializer
+    QuizQuestionSerializer, QuizQuestionDetailSerializer, QuizAttemptSerializer, QuizAnswerSerializer,
+    LessonResourceSerializer
 )
 
 
@@ -406,3 +407,23 @@ class QuizAttemptViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         return [IsLearnerRole()]
+
+class LessonResourceViewSet(viewsets.ModelViewSet):
+    queryset = LessonResource.objects.all()
+    serializer_class = LessonResourceSerializer
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsAdminOrInstructorRole()]
+        return [permissions.IsAuthenticated()]
+
+    def get_queryset(self):
+        lesson_id = self.request.query_params.get('lesson_id')
+        queryset = self.queryset.select_related('lesson')
+        if lesson_id:
+            queryset = queryset.filter(lesson_id=lesson_id)
+        return queryset.order_by('order')
+
+    def perform_create(self, serializer):
+        # Optional: ensure instructor owns the course
+        serializer.save()

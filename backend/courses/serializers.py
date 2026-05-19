@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.utils import timezone
 from datetime import timedelta
-from .models import Category, Course, Module, Lesson, Enrollment, Certificate, Announcement, Assignment, Submission, QuizQuestion, QuizAttempt
+from .models import Category, Course, Module, Lesson, Enrollment, Certificate, Announcement, Assignment, Submission, QuizQuestion, QuizAttempt, LessonResource
 from accounts.serializers import UserSerializer
 
 class AssignmentSerializer(serializers.ModelSerializer):
@@ -39,11 +39,25 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'slug', 'description', 'icon', 'course_count']
 
 
+class LessonResourceSerializer(serializers.ModelSerializer):
+    file_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = LessonResource
+        fields = ['id', 'lesson', 'title', 'file', 'file_url', 'content', 'resource_type', 'order', 'created_at']
+
+    def get_file_url(self, obj):
+        if not obj.file:
+            return None
+        request = self.context.get('request')
+        return request.build_absolute_uri(obj.file.url) if request else obj.file.url
+
+
 class LessonSerializer(serializers.ModelSerializer):
     course_title = serializers.SerializerMethodField()
     previous_lesson_id = serializers.SerializerMethodField()
     next_lesson_id = serializers.SerializerMethodField()
-    resources = serializers.SerializerMethodField()
+    resources = LessonResourceSerializer(many=True, read_only=True)
     is_completed = serializers.SerializerMethodField()
     module_is_available = serializers.SerializerMethodField()
     module_available_at = serializers.SerializerMethodField()
@@ -123,13 +137,6 @@ class LessonSerializer(serializers.ModelSerializer):
     def get_next_lesson_id(self, obj):
         lesson = obj.course.lessons.filter(order__gt=obj.order).order_by('order').first()
         return str(lesson.id) if lesson else None
-
-    def get_resources(self, obj):
-        return [
-            {"label": "Lesson Notes", "type": "markdown"},
-            {"label": "Starter Files", "type": "zip"},
-            {"label": "Reference Cheatsheet", "type": "pdf"},
-        ]
 
     def get_is_completed(self, obj):
         request = self.context.get('request')

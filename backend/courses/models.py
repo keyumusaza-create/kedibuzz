@@ -220,3 +220,25 @@ class Announcement(models.Model):
 
     def __str__(self):
         return self.title
+
+class LessonResource(models.Model):
+    RESOURCE_TYPES = [
+        ('markdown', 'Markdown Notes'),
+        ('pdf', 'PDF Document'),
+        ('zip', 'ZIP Archive'),
+        ('other', 'Other Resource'),
+    ]
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='resources')
+    title = models.CharField(max_length=200)
+    file = models.FileField(upload_to='lessons/resources/', blank=True, null=True)
+    content = models.TextField(blank=True, help_text="Markdown content if file is not used")
+    resource_type = models.CharField(max_length=20, choices=RESOURCE_TYPES, default='other')
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f"{self.lesson.title} - {self.title} ({self.resource_type})"

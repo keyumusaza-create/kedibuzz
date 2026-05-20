@@ -13,6 +13,17 @@ export default function Courses() {
   const [search, setSearch] = useState('')
   const [activeCategory, setActiveCategory] = useState('')
   const [loading, setLoading] = useState(true)
+  const [deletingId, setDeletingId] = useState(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null)
+
+  const fetchCourses = () => {
+    setLoading(true)
+    api.get('/courses/list/')
+      .then((response) => {
+        setCourses(response.data.results || response.data || [])
+      })
+      .finally(() => setLoading(false))
+  }
 
   useEffect(() => {
     Promise.all([api.get('/courses/list/'), api.get('/courses/categories/')])
@@ -23,6 +34,26 @@ export default function Courses() {
 
       .finally(() => setLoading(false))
   }, [])
+
+  const handleDelete = async (courseId) => {
+    setDeletingId(courseId)
+    try {
+      await api.delete(`/courses/${courseId}/`)
+      setCourses((prev) => prev.filter((c) => c.id !== courseId))
+      setConfirmDeleteId(null)
+    } catch (err) {
+      alert(err.response?.data?.detail || 'Failed to delete course.')
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
+  const canDelete = (course) => {
+    if (!user) return false
+    if (user.role === 'admin') return true
+    if (user.role === 'instructor' && course.instructor?.id === user?.id) return true
+    return false
+  }
 
   const filteredCourses = useMemo(() => {
     return courses.filter((course) => {
@@ -98,6 +129,32 @@ export default function Courses() {
                       <Link to={`/courses/${course.id}`} style={{ padding: '0.78rem 1rem', borderRadius: '999px', background: '#0f172a', color: '#fff', textDecoration: 'none', fontWeight: 800, fontSize: '0.85rem' }}>Open</Link>
                       {(user?.role === 'instructor' && course.instructor?.id === user?.id) && (
                         <Link to={`/instructor/courses/${course.id}/builder`} style={{ padding: '0.78rem 1rem', borderRadius: '999px', background: '#f1f5f9', color: '#1d4ed8', textDecoration: 'none', fontWeight: 800, fontSize: '0.85rem', border: '1px solid #dbeafe' }}>Edit</Link>
+                      )}
+                      {canDelete(course) && (
+                        confirmDeleteId === course.id ? (
+                          <div style={{ display: 'flex', gap: '0.3rem' }}>
+                            <button
+                              onClick={() => handleDelete(course.id)}
+                              disabled={deletingId === course.id}
+                              style={{ padding: '0.78rem 0.8rem', borderRadius: '999px', background: '#dc2626', color: '#fff', border: 'none', fontWeight: 800, fontSize: '0.75rem', cursor: 'pointer' }}
+                            >
+                              {deletingId === course.id ? '...' : 'Confirm'}
+                            </button>
+                            <button
+                              onClick={() => setConfirmDeleteId(null)}
+                              style={{ padding: '0.78rem 0.8rem', borderRadius: '999px', background: '#f1f5f9', color: '#334155', border: '1px solid #dbeafe', fontWeight: 800, fontSize: '0.75rem', cursor: 'pointer' }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setConfirmDeleteId(course.id)}
+                            style={{ padding: '0.78rem 0.8rem', borderRadius: '999px', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', fontWeight: 800, fontSize: '0.75rem', cursor: 'pointer' }}
+                          >
+                            Delete
+                          </button>
+                        )
                       )}
                     </div>
                   </div>

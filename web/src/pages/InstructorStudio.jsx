@@ -93,6 +93,14 @@ export function InstructorCourses() {
     load()
   }
 
+  const handleDelete = async (course) => {
+    if (!window.confirm(`Are you sure you want to delete "${course.title}"? This action cannot be undone.`)) return
+    try {
+      await api.delete(`/courses/list/${course.id}/`)
+      load()
+    } catch { alert('Failed to delete course') }
+  }
+
   return (
     <Layout>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
@@ -135,6 +143,9 @@ export function InstructorCourses() {
                   <Link to={`/instructor/analytics?course_id=${course.id}`} style={btn(false)}>Analytics</Link>
                   <button onClick={() => togglePublish(course)} style={btn(false)}>
                     {course.is_published ? 'Unpublish' : 'Publish'}
+                  </button>
+                  <button onClick={() => handleDelete(course)} style={{ ...btn(false), color: '#dc2626', borderColor: '#fca5a5' }}>
+                    Delete
                   </button>
                   <Link to={`/instructor/lessons?course_id=${course.id}`} style={btn(false)}>Lessons</Link>
                   <Link to={`/instructor/assignments?course_id=${course.id}`} style={btn(true)}>Assignments</Link>

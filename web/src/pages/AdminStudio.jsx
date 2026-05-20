@@ -546,6 +546,14 @@ export const AdminCourses = () => {
     } catch { alert('Failed to toggle publish status') }
   }
 
+  const handleDelete = async (course) => {
+    if (!window.confirm(`Are you sure you want to delete "${course.title}"? This action cannot be undone.`)) return
+    try {
+      await api.delete(`/dashboard/admin/courses/?id=${course.id}`)
+      fetchCourses()
+    } catch { alert('Failed to delete course') }
+  }
+
   const difficultyColors = { beginner: '#16a34a', intermediate: '#ea580c', advanced: '#dc2626' }
 
   return (
@@ -593,6 +601,10 @@ export const AdminCourses = () => {
                         <button onClick={() => togglePublish(c)}
                           style={{ padding: '0.45rem 0.85rem', borderRadius: '0.6rem', border: '1.5px solid #e2e8f0', background: '#fff', color: c.is_published ? '#ea580c' : '#16a34a', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}>
                           {c.is_published ? 'Unpublish' : 'Publish'}
+                        </button>
+                        <button onClick={() => handleDelete(c)}
+                          style={{ padding: '0.45rem 0.85rem', borderRadius: '0.6rem', border: '1.5px solid #fee2e2', background: '#fff', color: '#dc2626', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}>
+                          Delete
                         </button>
                       </div>
                     </td>

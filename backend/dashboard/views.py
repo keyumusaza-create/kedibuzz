@@ -333,6 +333,18 @@ class AdminCoursesView(APIView):
         except Course.DoesNotExist:
             return Response({'error': 'Course not found'}, status=404)
 
+    def delete(self, request):
+        """Delete a course."""
+        if request.user.role != 'admin':
+            return Response({'error': 'Not authorized'}, status=403)
+        course_id = request.query_params.get('id')
+        try:
+            course = Course.objects.get(id=course_id)
+            course.delete()
+            return Response({'detail': 'Course deleted successfully'}, status=204)
+        except Course.DoesNotExist:
+            return Response({'error': 'Course not found'}, status=404)
+
 
 class AdminStudentsView(APIView):
     """Admin: list all learners with enrollment stats."""
